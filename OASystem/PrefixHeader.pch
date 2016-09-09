@@ -1,0 +1,19 @@
+//
+//  PrefixHeader.pch
+//  OASystem_NET
+//
+//  Created by 周桐 on 16/9/9.
+//  Copyright © 2016年 周桐. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#define contactsModPath [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0] stringByAppendingPathComponent:@"contactsMod.data"]
+#define selfInfoModPath [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0] stringByAppendingPathComponent:@"selfInfoMod.data"]
+#define boardModPath [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES)[0] stringByAppendingPathComponent:@"boardMod.data"]
+
+#endif /* PrefixHeader_pch */
