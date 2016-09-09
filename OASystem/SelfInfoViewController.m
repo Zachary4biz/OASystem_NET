@@ -33,11 +33,6 @@
     [super viewDidLoad];
     self.automaticallyAdjustsScrollViewInsets = NO;
     
-//    MBProgressHUD *hud = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
-//    hud.label.text = @"正在获取...";
-//    hud.mode = UIPushBehaviorModeContinuous;
-//    hud.removeFromSuperViewOnHide = YES;
-    self.mod = [selfInfoMod selfInfoWithDict:self.getselfInfo[0]];
     [self setTextFields];
 #warning 这个默认是给@selector函数传参传自己么
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc]initWithTitle:@"编辑" style:UIBarButtonItemStylePlain target:self action:@selector(edit:)];

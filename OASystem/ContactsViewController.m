@@ -120,7 +120,7 @@
 {
     //把cell的基本信息都搞好
     ContactsTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell_contacts"];
-    cell.mod = _dataArr[indexPath.row];
+    cell.mod = self.dataArr[indexPath.row];
     //开始搞图片
     [cell.activityIndicator startAnimating];
     UIImage *icon = self.iconCache[cell.mod.Icon];

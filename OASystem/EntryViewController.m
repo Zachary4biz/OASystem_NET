@@ -11,6 +11,7 @@
 #import "SelfInfoViewController.h"
 #import "ContactsMod.h"
 #import "boardMod.h"
+#import "selfInfoMod.h"
 #import "someAssist.h"
 #import "BoardViewController.h"
 
@@ -22,14 +23,23 @@
 //- (IBAction)get2selfInfo:(id)sender;
 @property (weak, nonatomic) IBOutlet UIButton *timeBtn;
 @property (weak, nonatomic) IBOutlet UIButton *contactsBtn;
+@property (weak, nonatomic) IBOutlet UIButton *messageBtn;
+@property (weak, nonatomic) IBOutlet UIButton *nameBtn;
+@property (weak, nonatomic) IBOutlet UIButton *accountBtn;
+@property (weak, nonatomic) IBOutlet UIButton *boardBtn;
 
 @property (strong,nonatomic)NSTimer *timer;//用来在viewDidDisappear中实现repeat刷新时间btn
 @property (weak, nonatomic) IBOutlet UILabel *dateLabel;
-
 @property (weak, nonatomic) IBOutlet UILabel *timeLabel;
 
 - (IBAction)nameBtn:(id)sender;
-@property(strong,nonatomic)id result4selfInfo;
+@property(strong,nonatomic)id result4selfInfo;//用来判断联网是否成功
+@property(strong,nonatomic)selfInfoMod *selfInfoMod;//如果联网成功，用来保存模型并保存到Cache
+- (IBAction)contactsBtn:(id)sender;
+- (IBAction)accountBtn:(id)sender;
+- (IBAction)boardBtn:(id)sender;
+- (IBAction)messageBtn:(id)sender;
+
 
 @end
 
@@ -124,17 +134,13 @@
 
     if ([segue.identifier isEqualToString:@"entry2selfInfo"]) {
         SelfInfoViewController *vc = segue.destinationViewController;
-        vc.getselfInfo = self.result4selfInfo;
+        vc.mod = self.selfInfoMod;
     }
     
     if ([segue.identifier isEqualToString:@"entry2board"]) {
         BoardViewController *temp_VC = segue.destinationViewController;
-        someAssist *hud = [[someAssist alloc] init];
-        [hud showWait:self];
-        id result = [someAssist getBoard_modArr];
-        [hud dismissWait:self];
-        temp_VC.result = result;
     }
+    
 }
 
 
@@ -156,17 +162,55 @@
     [hud showWait:self];
     [someAssist getSelfInfo_json:@"zac" Complemention:^(id object) {
         tellResult(object);
-        if (object == nil) {
-            self.result4selfInfo = nil;
-        }
-        else{
-            self.result4selfInfo = object;
-        }
+        //结果需要回到主线程判断，因为跳转时在主线程，不在主线程判断可能跳转了但是数据没接到
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            self.nameBtn.enabled=YES;
-            [self performSegueWithIdentifier:@"entry2selfInfo" sender:nil];
+            if (object == nil) {
+                self.result4selfInfo = [NSKeyedUnarchiver unarchiveObjectWithFile:selfInfoModPath];
+            }
+            else{
+                self.result4selfInfo = object;
+                self.selfInfoMod = [selfInfoMod selfInfoWithDict:object[0]];
+                [NSKeyedArchiver archiveRootObject:self.selfInfoMod toFile:selfInfoModPath];
+            }
+            
+                [hud dismissWait:self];
+                self.nameBtn.enabled=YES;
+                [self performSegueWithIdentifier:@"entry2selfInfo" sender:nil];
         }];
     }];
 }
 
+- (IBAction)contactsBtn:(id)sender {
+    self.contactsBtn.enabled = NO;
+    someAssist *hud = [[someAssist alloc]init];
+    [hud showWait:self];
+    [someAssist getSelfInfo_json:@"zac" Complemention:^(id object) {
+        tellResult(object);
+        //结果需要回到主线程判断，因为跳转时在主线程，不在主线程判断可能跳转了但是数据没接到
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            if (object == nil) {
+                self.result4selfInfo = [NSKeyedUnarchiver unarchiveObjectWithFile:selfInfoModPath];
+            }
+            else{
+                self.result4selfInfo = object;
+                self.selfInfoMod = [selfInfoMod selfInfoWithDict:object[0]];
+                [NSKeyedArchiver archiveRootObject:self.selfInfoMod toFile:selfInfoModPath];
+            }
+            
+            [hud dismissWait:self];
+            self.nameBtn.enabled=YES;
+            [self performSegueWithIdentifier:@"entry2selfInfo" sender:nil];
+        }];
+    }];
+    
+}
+
+- (IBAction)accountBtn:(id)sender {
+}
+
+- (IBAction)boardBtn:(id)sender {
+}
+
+- (IBAction)messageBtn:(id)sender {
+}
 @end

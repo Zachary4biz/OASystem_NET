@@ -15,7 +15,7 @@
 
 @interface someAssist()
 #warning  如何删除UIAlertController？？？？
-@property(nonatomic,strong) UIAlertController *alertController;//想实现类似MBProgress的蒙版效果
+//@property(nonatomic,strong) UIAlertController *alertController;//想实现类似MBProgress的蒙版效果
 @property(nonatomic, strong)UIAlertView *alertView;
 @end
 
@@ -25,7 +25,9 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
     [alert addAction:action];
-    [vc presentViewController:alert animated:YES completion:nil];
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+        [vc presentViewController:alert animated:YES completion:nil];
+    }];
     
 }
 
@@ -63,12 +65,10 @@
     return iconStr;
 }
 
-+(void)getJson:(NSURL *)url Completion:(CompletionBlock)completion{
-#warning 还能有别的传消息方式吗，block里面不能return
-    
++(void)getJson:(NSMutableURLRequest *)request Completion:(CompletionBlock)completion{
     __block NSArray *jsonObject = nil;
     //建立task，默认就新开一条线程
-    NSURLSessionTask *task = [[NSURLSession sharedSession] dataTaskWithURL:url completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+    NSURLSessionTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         
         if (error) {
             NSLog(@"getJson连接失败--%@",error);
@@ -101,24 +101,8 @@
     NSURLResponse *response = nil;
     NSError *error = nil;
     NSData *data = [NSURLConnection sendSynchronousRequest:request_get returningResponse:&response error:&error];
-//    [NSURLConnection sendAsynchronousRequest:request_get queue:[[NSOperationQueue alloc]init] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
-//        if (connectionError) {
-//            NSLog(@"getContacts请求失败---%@",error);
-//            return @"connect fail";
-//        }
-//        else{
-//            //处理得到的json数据
-//            NSError *error4json = nil;
-//            NSArray *jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error4json];
-//            
-//            //json数据以字典形式存入模型，再把模型存入数组,json数据可以当做字典来用
-//            NSMutableArray *tempArr = [NSMutableArray array];
-//            for(int i=0;i<jsonObject.count;i++){
-//                ContactsMod *mod_temp = [ContactsMod contactsWithDict:jsonObject[i]];
-//                [tempArr addObject:mod_temp];
-//            }
-//            return tempArr;
-//    }];
+    
+    
     
     if (error){
         NSLog(@"getContacts请求失败---%@",error);
@@ -213,13 +197,17 @@
 
 -(void)showWait:(UIViewController *)VC{
 //    self.alertController = [UIAlertController alertControllerWithTitle:@"请稍后" message:nil preferredStyle:UIAlertControllerStyleAlert];
-//    [VC presentViewController:self.alertController animated:YES completion:nil];
     self.alertView = [[UIAlertView alloc]initWithTitle:@"请稍后" message:nil delegate:nil cancelButtonTitle:nil otherButtonTitles:nil, nil];
-    [_alertView show];
+    [[NSOperationQueue mainQueue]addOperationWithBlock:^{
+//        [VC presentViewController:self.alertController animated:YES completion:nil];
+            [_alertView show];
+    }];
 }
 -(void)dismissWait:(UIViewController *)VC{
-//    [self.alertController removeFromParentViewController];
-    [_alertView dismissWithClickedButtonIndex:0 animated:YES];
+    [[NSOperationQueue mainQueue]addOperationWithBlock:^{
+//        [self.alertController removeFromParentViewController];
+            [_alertView dismissWithClickedButtonIndex:0 animated:NO];
+    }];
 }
 
 @end

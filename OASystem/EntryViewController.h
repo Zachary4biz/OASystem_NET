@@ -10,7 +10,7 @@
 @class ContactsMod;
 
 @interface EntryViewController : UIViewController
-@property (weak, nonatomic) IBOutlet UIButton *nameBtn;
+
 @property(strong,nonatomic)NSString *name;//用来接收loginView传的登录账户的姓名，因为在prepareforSegue的时候直接对按钮setTitle失败了，所以走另一条路来试试
 @property(strong,nonatomic)NSString *contacts_count;//用来接收loginView传的联系人个数
 @property (strong,nonatomic) ContactsMod *mod;

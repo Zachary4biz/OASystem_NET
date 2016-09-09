@@ -64,7 +64,7 @@
         self.pwd.text = saveArr[0][@"pwd"];
         //自动登录
         if (self.autoLoginSwitch.on==YES){
-//            [self loginBtn];
+            [self loginBtn];
         }
     }
     
@@ -156,43 +156,47 @@
     //异步request
     [NSURLConnection sendAsynchronousRequest:request_post queue:[[NSOperationQueue alloc]init] completionHandler:^(NSURLResponse * response, NSData * data, NSError * _Nullable connectionError) {
         //回到主线程关闭蒙版
-        dispatch_sync(dispatch_get_main_queue(), ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
             [hud dismissWait:self];
-        });
-        if (connectionError) {
-            NSLog(@"请求失败--%@",connectionError);
-            [someAssist alertWith:@"连接失败" viewController:self];
-        }
-        else{
-            NSString *result = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
-            //这里是登录后服务器会返回done Zhou 15，即done(空格)用户的名字(空格)联系人个数
-             NSArray *resultArr = [result componentsSeparatedByString:@" "];
-            //这里仍然可以先用字符串截取的方式截取前4个，前四个仍然可以判断能不能登录(done)
-            if ([[result substringWithRange:NSMakeRange(0,4)] isEqualToString:@"done"]) {
-                //登录成功之后，就把返回结果按空格分隔，取第二个和第三个分别是名字和联系人个数
-                [self saveAccountPwd];
-                self.name = resultArr[1];
-                self.contacts_count = resultArr[2];
-                [self performSegueWithIdentifier:@"login2entry" sender:nil];
-            }
-            else if ([result isEqualToString:@"account wrong"]){
-                [someAssist alertWith:@"账号不存在" viewController:self];
-            }
-            else if ([result isEqualToString:@"pwd wrong"]){
-//                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"密码错误" message:nil preferredStyle:UIAlertControllerStyleAlert];
-//                UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
-//                [alert addAction:action];
-//                [self presentViewController:alert animated:YES completion:nil];
-                [someAssist alertWith:@"密码错误" viewController:self];
+            
+            //把这一坨判断写在主线程里面是因为用的是GCD async，所以可能已经跳转页面了，但是hud还没有dismiss
+            if (connectionError) {
+                NSLog(@"请求失败--%@",connectionError);
+                [someAssist alertWith:@"连接失败" viewController:self];
             }
             else{
-                [someAssist alertWith:@"未知错误" viewController:self];
+                NSString *result = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+                //这里是登录后服务器会返回done Zhou 15，即done(空格)用户的名字(空格)联系人个数
+                NSArray *resultArr = [result componentsSeparatedByString:@" "];
+                //这里仍然可以先用字符串截取的方式截取前4个，前四个仍然可以判断能不能登录(done)
+                if ([[result substringWithRange:NSMakeRange(0,4)] isEqualToString:@"done"]) {
+                    //登录成功之后，就把返回结果按空格分隔，取第二个和第三个分别是名字和联系人个数
+                    [self saveAccountPwd];
+                    self.name = resultArr[1];
+                    self.contacts_count = resultArr[2];
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self performSegueWithIdentifier:@"login2entry" sender:nil];
+                    });
+                }
+                else if ([result isEqualToString:@"account wrong"]){
+                    [someAssist alertWith:@"账号不存在" viewController:self];
+                }
+                else if ([result isEqualToString:@"pwd wrong"]){
+                    //                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"密码错误" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                    //                UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
+                    //                [alert addAction:action];
+                    //                [self presentViewController:alert animated:YES completion:nil];
+                    [someAssist alertWith:@"密码错误" viewController:self];
+                }
+                else{
+                    [someAssist alertWith:@"未知错误" viewController:self];
+                }
             }
-        }
+
+        });
         
     }];
     
-    NSLog(@"主线程跑完，借来是异步request？");
 }
 //封装---login中使用--保存账号密码
 -(void)saveAccountPwd{
@@ -229,12 +233,12 @@ else if(self.rememberPwdSwitch.on==NO){
 
 
 
--(void)alertWith:(NSString *)str{
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
-    [alert addAction:action];
-    [self presentViewController:alert animated:YES completion:nil];
-}
+//-(void)alertWith:(NSString *)str{
+//    UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
+//    UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
+//    [alert addAction:action];
+//    [self presentViewController:alert animated:YES completion:nil];
+//}
 
 - (IBAction)rememberPwdSwitch:(id)sender {
     if (self.rememberPwdSwitch.on == NO)
