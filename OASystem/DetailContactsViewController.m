@@ -42,18 +42,6 @@
     UIAlertAction *ok = [UIAlertAction actionWithTitle:@"删除" style:UIAlertActionStyleDestructive handler:
                          ^(UIAlertAction * _Nonnull action)
     {
-//        //获取contacts.plist，删除该联系人
-//        NSString *pre_path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
-//        NSString *path = [pre_path stringByAppendingPathComponent:@"contacts.plist"];
-//        NSMutableArray *tempArr = [NSMutableArray arrayWithContentsOfFile:path];
-//        [tempArr removeObjectAtIndex:self.recorder4indexPathRow];
-//        //读取到的数组中移除数据后，再次覆盖写入
-//        [tempArr writeToFile:path atomically:YES];
-//        //通知ContactsViewController刷新页面
-//        //1.创建通知
-//        NSNotification *refresh = [NSNotification notificationWithName:@"refresh" object:nil];
-//        //2.post发送通知到默认通知中心
-//        [[NSNotificationCenter defaultCenter]postNotification:refresh];
         
         NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"deletecontact"]];
         NSMutableURLRequest *request_post = [NSMutableURLRequest requestWithURL:url];

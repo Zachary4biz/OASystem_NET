@@ -14,4 +14,5 @@
 //如果在进入这一层VC断网了，而获取数据不是从上一层传过来而是从网络获取，会直接崩溃
 //注：执行顺序：alloc-->init-->loadView-->viewDidLoad-->viewWillAppear-->DidAppear-->willDisappear-->DidDisappear-->dealloc
 //简单来说，只要联网获取数据这一步写在viewDidLoad里面，就会把这个页面卡主，进不来的，只有加载完了才会进来，所以还是在前一个页面联网获取数据把，那样还能搞个加载中的动画
+//!!!!其实加载数据写在willAppear里面，然后reloadData就好了，TableView这样是可以的
 @end

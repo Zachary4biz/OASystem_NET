@@ -7,6 +7,7 @@
 //
 
 #import "AccountSettingViewController.h"
+#import "someAssist.h"
 
 @interface AccountSettingViewController ()<UIActionSheetDelegate>
 - (IBAction)resign:(id)sender;
@@ -43,6 +44,10 @@
 //    UIActionSheet *sheet = [[UIActionSheet alloc]initWithTitle:@"确认注销？" delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:@"注销" otherButtonTitles:nil, nil];
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"确认注销?" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
     UIAlertAction *ok = [UIAlertAction actionWithTitle:@"注销" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"resign"]];
+        NSURLRequest *request = [NSURLRequest requestWithURL:url];
+        NSData *result = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
+        NSLog(@"%@",result);
         [self.navigationController popToRootViewControllerAnimated:YES];
     }];
     UIAlertAction *no = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];

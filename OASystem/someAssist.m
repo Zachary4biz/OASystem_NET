@@ -22,8 +22,23 @@
 @implementation someAssist
 
 +(void)alertWith:(NSString *)str viewController:(UIViewController *)vc{
+//    UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
+//    UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
+//    [alert addAction:action];
+//    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+//        [vc presentViewController:alert animated:YES completion:nil];
+//    }];
+    
+    UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:str message:nil delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
+    [alertView show];
+    
+}
+
++(void)alertAndExitWith:(NSString *)str viewController:(UIViewController *)vc{
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
-    UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:nil];
+    UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"点击了确定?");
+    }];
     [alert addAction:action];
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
         [vc presentViewController:alert animated:YES completion:nil];
@@ -69,95 +84,136 @@
     __block NSArray *jsonObject = nil;
     //建立task，默认就新开一条线程
     NSURLSessionTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        
-        if (error) {
-            NSLog(@"getJson连接失败--%@",error);
-            completion(@"connect fail");
-        }
-        else{
-            NSError *er4json = nil;
-            jsonObject = [NSJSONSerialization JSONObjectWithData:data  options:NSJSONReadingAllowFragments error:&er4json];
-            if (er4json) {
-                NSLog(@"json错误--%@",er4json);
-                completion(@"json fail");
+            if (error) {
+                NSLog(@"getJson连接失败--%@",error);
+                completion(@"connect fail");
             }
             else{
-                completion(jsonObject);
+                NSError *er4json = nil;
+                jsonObject = [NSJSONSerialization JSONObjectWithData:data  options:NSJSONReadingAllowFragments error:&er4json];
+                if (er4json) {
+                    NSLog(@"json错误--%@",er4json);
+                    completion(@"json fail");
+                }
+                else{
+                    completion(jsonObject);
+                }
             }
-        }
-    }];
+        }];
     //task启动
     [task resume];
 
 }
 
-+(id)getContacts{
++(void)getContacts_modArrWithCompletionBlock:(CompletionBlock)completion{
     //得到url
     NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"contacts_json"]];
     
-    //get方式请求，同步请求
     NSMutableURLRequest *request_get = [NSMutableURLRequest requestWithURL:url];
-    request_get.timeoutInterval = 5;
-    NSURLResponse *response = nil;
-    NSError *error = nil;
-    NSData *data = [NSURLConnection sendSynchronousRequest:request_get returningResponse:&response error:&error];
+    request_get.timeoutInterval = 3;
     
-    
-    
-    if (error){
-        NSLog(@"getContacts请求失败---%@",error);
-        NSString *er =@"连接服务器失败";
-        return er;
-    }
-    else{
-        //处理得到的json数据
-        NSError *error4json = nil;
-        NSArray *jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error4json];
-        
-        //json数据以字典形式存入模型，再把模型存入数组,json数据可以当做字典来用
-        NSMutableArray *tempArr = [NSMutableArray array];
-        for(int i=0;i<jsonObject.count;i++){
-            ContactsMod *mod_temp = [ContactsMod contactsWithDict:jsonObject[i]];
-            [tempArr addObject:mod_temp];
+    //使用NSURLSession
+    NSURLSessionTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request_get completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"getContacts连接失败--%@",error);
+            completion(@"connect fail");
         }
-        return tempArr;
-    }
+        else{
+            //由于服务器重启，返回值可能是not_login字符串
+            NSString *dataStr = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+            
+            if ([dataStr isEqualToString:@"not login"]) {
+                completion(@"not login");
+            }
+            else{
+                NSError *er4json = nil;
+                NSArray *jsonObject = nil;
+                jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&er4json];
+                if (er4json) {
+                    NSLog(@"getContacts读取Json失败--%@",er4json);
+                    completion(@"json fail");
+                }
+                else{
+                    NSMutableArray *tempArr = [NSMutableArray array];
+                    for (id i in jsonObject){
+                        ContactsMod *mod =[ContactsMod contactsWithDict:i];
+                        [tempArr addObject:mod];
+                    }
+                    completion(tempArr);
+                }
+            }
+        }
+    }];
+    
+    [task resume];
 }
 
-+(id)getBoard_modArr{
++(void)getBoard_modArrWithCompletionBlock:(CompletionBlock)completion{
     //得到url
-    
     NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"board_json"]];
     //get方式请求，同步请求
     NSMutableURLRequest *request_get = [NSMutableURLRequest requestWithURL:url];
     request_get.timeoutInterval = 5;
-    NSURLResponse *response = nil;
-    NSError *error = nil;
-    NSData *data = [NSURLConnection sendSynchronousRequest:request_get returningResponse:&response error:&error];
-    
-    if (error){
-        NSLog(@"getBoard请求失败---%@",error);
-        NSString *er =@"connect fail";
-        return er;
-    }
-    else{
-        //处理得到的json数据
-        NSError *error4json = nil;
-        NSArray *jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error4json];
-        if (error4json) {
-            return @"json fail";
+
+    NSURLSessionTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request_get completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        if (error) {
+            NSLog(@"getContacts连接失败--%@",error);
+            completion(@"connect fail");
         }
         else{
-            //json数据以字典形式存入模型，再把模型存入数组,json数据可以当做字典来用
-            NSMutableArray *tempArr = [NSMutableArray array];
-            for(int i=0;i<jsonObject.count;i++){
-#warning 比如这里，跟getContacts差别其实只在于模型的类不同，一个是boardMod一个是ContactsMod，如何根据传入参数来修改这个类名？？这里参考setvalueforkeywithdictionary那个方法，它不就实现了么
-                boardMod *mod_temp = [boardMod boardWithDict:jsonObject[i]];
-                [tempArr addObject:mod_temp];
+            //由于服务器重启，返回值可能是not_login字符串
+            NSString *dataStr = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+            if ([dataStr isEqualToString:@"not login"]) {
+                completion(@"not login");
             }
-            return tempArr;
+            else{
+                NSError *er4json = nil;
+                NSArray *jsonObject = nil;
+                jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&er4json];
+                if (er4json) {
+                    NSLog(@"getContacts读取Json失败--%@",er4json);
+                    completion(@"json fail");
+                }
+                else{
+                    NSMutableArray *tempArr = [NSMutableArray array];
+                    for (id i in jsonObject){
+                        boardMod *mod =[boardMod boardWithDict:i];
+                        [tempArr addObject:mod];
+                    }
+                    completion(tempArr);
+                }
+            }
         }
-    }
+    }];
+    [task resume];
+    
+//    NSURLResponse *response = nil;
+//    NSError *error = nil;
+//    NSData *data = [NSURLConnection sendSynchronousRequest:request_get returningResponse:&response error:&error];
+//    
+//    if (error){
+//        NSLog(@"getBoard请求失败---%@",error);
+//        NSString *er =@"connect fail";
+//        return er;
+//    }
+//    else{
+//        //处理得到的json数据
+//        NSError *error4json = nil;
+//        NSArray *jsonObject = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:&error4json];
+//        if (error4json) {
+//            return @"json fail";
+//        }
+//        else{
+//            //json数据以字典形式存入模型，再把模型存入数组,json数据可以当做字典来用
+//            NSMutableArray *tempArr = [NSMutableArray array];
+//            for(int i=0;i<jsonObject.count;i++){
+//#warning 比如这里，跟getContacts差别其实只在于模型的类不同，一个是boardMod一个是ContactsMod，如何根据传入参数来修改这个类名？？这里参考setvalueforkeywithdictionary那个方法，它不就实现了么
+//                boardMod *mod_temp = [boardMod boardWithDict:jsonObject[i]];
+//                [tempArr addObject:mod_temp];
+//            }
+//            return tempArr;
+//        }
+//    }
 }
 
 +(void)getSelfInfo_json:(NSString *)usr Complemention:(CompletionBlock)complete

@@ -10,5 +10,6 @@
 
 @interface ContactsViewController : UIViewController
 @property (nonatomic, strong)NSMutableArray *dataArr;
+@property(nonatomic,strong)NSMutableArray *getDataArr;
 
 @end

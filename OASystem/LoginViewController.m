@@ -36,6 +36,7 @@
 @implementation LoginViewController
 
 - (void)viewDidLoad {
+
     
     [super viewDidLoad];
     self.automaticallyAdjustsScrollViewInsets = NO;

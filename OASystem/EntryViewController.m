@@ -7,13 +7,13 @@
 //
 
 #import "EntryViewController.h"
+
 #import "ContactsViewController.h"
 #import "SelfInfoViewController.h"
-#import "ContactsMod.h"
-#import "boardMod.h"
+#import "BoardViewController.h"
 #import "selfInfoMod.h"
 #import "someAssist.h"
-#import "BoardViewController.h"
+
 
 
 @interface EntryViewController ()
@@ -32,13 +32,23 @@
 @property (weak, nonatomic) IBOutlet UILabel *dateLabel;
 @property (weak, nonatomic) IBOutlet UILabel *timeLabel;
 
+
+@property(strong,nonatomic)id result;//用来判断联网是否成功,暂时没用到
 - (IBAction)nameBtn:(id)sender;
-@property(strong,nonatomic)id result4selfInfo;//用来判断联网是否成功
 @property(strong,nonatomic)selfInfoMod *selfInfoMod;//如果联网成功，用来保存模型并保存到Cache
+
 - (IBAction)contactsBtn:(id)sender;
-- (IBAction)accountBtn:(id)sender;
+@property(strong,nonatomic)NSMutableArray *contactsModArr;
+
 - (IBAction)boardBtn:(id)sender;
+@property(strong,nonatomic)NSMutableArray *boardModArr;
+
+- (IBAction)accountBtn:(id)sender;
+
+
 - (IBAction)messageBtn:(id)sender;
+
+
 
 
 @end
@@ -67,14 +77,8 @@
     app.networkActivityIndicatorVisible = YES;
     
     
-    //调用somAssist的方法，获取联系人的模型数组
-    id result = [someAssist getContacts];
-    if ([result isKindOfClass:[NSString class]]) {
-        [someAssist alertWith:result viewController:self];
-    }
-    else if ([result isKindOfClass:[NSMutableArray class]]){
-        _modArr = result;
-}
+    
+
    
     
 //    //创建用户通知
@@ -104,7 +108,7 @@
 {
     self.dateLabel.text = [someAssist getDate];
     self.timeLabel.text = [someAssist getTime];
-    NSLog(@"updatetimeBtntitleLabel..");
+    NSLog(@"updatetimeBtntitleLabel.....--EntryView");
 }
 
 -(void)viewWillAppear:(BOOL)animated{
@@ -114,7 +118,7 @@
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
-    NSLog(@"disappear-----------------------------------------");
+    NSLog(@"disappear--------------------EntryView---------------------");
     self.view.alpha = 0;
     //此VC要消失的时候，停止刷新时间的self.timer，并释放掉
     [self.timer invalidate];
@@ -141,6 +145,11 @@
         BoardViewController *temp_VC = segue.destinationViewController;
     }
     
+    if ([segue.identifier isEqualToString:@"entry2contacts"]) {
+        ContactsViewController *temp_VC = segue.destinationViewController;
+        
+    }
+    
 }
 
 
@@ -158,6 +167,7 @@
 
 - (IBAction)nameBtn:(id)sender {
     self.nameBtn.enabled = NO;
+    
     someAssist *hud = [[someAssist alloc]init];
     [hud showWait:self];
     [someAssist getSelfInfo_json:@"zac" Complemention:^(id object) {
@@ -165,10 +175,9 @@
         //结果需要回到主线程判断，因为跳转时在主线程，不在主线程判断可能跳转了但是数据没接到
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
             if (object == nil) {
-                self.result4selfInfo = [NSKeyedUnarchiver unarchiveObjectWithFile:selfInfoModPath];
+                self.selfInfoMod = [NSKeyedUnarchiver unarchiveObjectWithFile:selfInfoModPath];
             }
             else{
-                self.result4selfInfo = object;
                 self.selfInfoMod = [selfInfoMod selfInfoWithDict:object[0]];
                 [NSKeyedArchiver archiveRootObject:self.selfInfoMod toFile:selfInfoModPath];
             }
@@ -181,36 +190,22 @@
 }
 
 - (IBAction)contactsBtn:(id)sender {
-    self.contactsBtn.enabled = NO;
-    someAssist *hud = [[someAssist alloc]init];
-    [hud showWait:self];
-    [someAssist getSelfInfo_json:@"zac" Complemention:^(id object) {
-        tellResult(object);
-        //结果需要回到主线程判断，因为跳转时在主线程，不在主线程判断可能跳转了但是数据没接到
-        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-            if (object == nil) {
-                self.result4selfInfo = [NSKeyedUnarchiver unarchiveObjectWithFile:selfInfoModPath];
-            }
-            else{
-                self.result4selfInfo = object;
-                self.selfInfoMod = [selfInfoMod selfInfoWithDict:object[0]];
-                [NSKeyedArchiver archiveRootObject:self.selfInfoMod toFile:selfInfoModPath];
-            }
-            
-            [hud dismissWait:self];
-            self.nameBtn.enabled=YES;
-            [self performSegueWithIdentifier:@"entry2selfInfo" sender:nil];
-        }];
-    }];
-    
+    //把这个东西单独封装是因为后面可能要在contacts页面出现时（willAppear）刷新数据，所以要再下载一次，但是又不用执行跳转
+//Contacts用的是在viewWillAppear里面的加载数据
+    [self performSegueWithIdentifier:@"entry2contacts" sender:nil];
 }
 
+
 - (IBAction)accountBtn:(id)sender {
+    [self performSegueWithIdentifier:@"entry2account" sender:nil];
 }
 
 - (IBAction)boardBtn:(id)sender {
+    //Board用的是懒加载，还是放在willAppear里面吧，这样在发布新公告后回来还可以自己刷新
+    [self performSegueWithIdentifier:@"entry2board" sender:nil];
 }
 
 - (IBAction)messageBtn:(id)sender {
+    [self performSegueWithIdentifier:@"entry2message" sender:nil];
 }
 @end

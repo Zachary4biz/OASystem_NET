@@ -20,7 +20,7 @@
 
 -(NSMutableArray *)boardModArr
 {
-    _boardModArr = [someAssist getBoard_modArr];
+    _boardModArr = [NSKeyedUnarchiver unarchiveObjectWithFile:boardModPath];
     return _boardModArr;
 }
 

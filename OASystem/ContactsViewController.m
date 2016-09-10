@@ -45,18 +45,18 @@
     return _iconCache;
 }
 
--(NSMutableArray *)dataArr
-{
-    _dataArr = [NSMutableArray array];
-    _dataArr = [someAssist getContacts];
-    if ([_dataArr isKindOfClass:[NSString class]]) {
-        [someAssist alertWith:@"连接服务器失败" viewController:self];
-        //连接服务器失败，就读取本地文件
-        _dataArr = [NSKeyedUnarchiver unarchiveObjectWithFile:contactsModPath];
-    }
-    [NSKeyedArchiver archiveRootObject:_dataArr toFile:contactsModPath];
-    return _dataArr;
-}
+//-(NSMutableArray *)dataArr
+//{
+//    _dataArr = [NSMutableArray array];
+//    _dataArr = [someAssist getContacts];
+//    if ([_dataArr isKindOfClass:[NSString class]]) {
+//        [someAssist alertWith:@"连接服务器失败" viewController:self];
+//        //连接服务器失败，就读取本地文件
+//        _dataArr = [NSKeyedUnarchiver unarchiveObjectWithFile:contactsModPath];
+//    }
+//    [NSKeyedArchiver archiveRootObject:_dataArr toFile:contactsModPath];
+//    return _dataArr;
+//}
 
 
 - (void)viewDidLoad {
@@ -65,8 +65,9 @@
     // Do any additional setup after loading the view.
     //防止cell不到tableview的顶部，关掉哪个留白
     self.automaticallyAdjustsScrollViewInsets = NO;
+    
     //通过插入一个view，并把bar本身颜色去掉的，再更改这个插入的view来实现改变透明度
-//    self.navigationController.navigationBar.backgroundColor = [UIColor clearColor];
+
     CGRect frame = self.navigationController.navigationBar.frame;
     self.alphaView = [[UIView alloc] initWithFrame:CGRectMake(0,0, frame.size.width, frame.size.height+20)];
 //    self.alphaView.backgroundColor = [UIColor blueColor];
@@ -77,25 +78,46 @@
     //监听是否要刷新的通知 refresh
 //    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(getNoteRefresh) name:@"refresh" object:nil];
 }
+
+
 -(void)dealloc
 {
     [[NSNotificationCenter defaultCenter]removeObserver:self];
 }
 
-//-(void)getNoteRefresh
-//{
-    //刷新界面刷新数据
-    
-//    [self.contactsTableView reloadData];//在viewWillApear里面reloadData了，就不用通知了
-//    [self.view reloadInputViews];
-//}
+
 
 //这里其实是使用持久化数据（plist、数据库文件）来达到传递数据的目的，所以只需要刷新页面就可以
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self.contactsTableView reloadData];
+    [self refreshContacts];
     self.view.alpha = 1;
 }
+
+-(void)refreshContacts
+{
+    someAssist *hud = [[someAssist alloc]init];
+    [hud showWait:self];
+    //重新从网上下载
+    [someAssist getContacts_modArrWithCompletionBlock:^(id object_temp) {
+        __block id object = object_temp;
+        //需要回到主线程判断
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+            [hud dismissWait:self];
+            tellResult(object);
+            if (object != nil) {
+                self.dataArr = object;
+                [NSKeyedArchiver archiveRootObject:object toFile:contactsModPath];
+            }
+            else{
+                self.dataArr = [NSKeyedUnarchiver unarchiveObjectWithFile:contactsModPath];
+            }
+            //并且在主线程reloadData
+            [self.contactsTableView reloadData];
+        }];
+    }];
+}
+
 //
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
@@ -228,8 +250,25 @@
         self.alphaView.alpha = 1;
     }
     
-
 }
+//实现左划按钮——————————————————————————
+-(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    editingStyle = UITableViewCellEditingStyleDelete;//此处的EditingStyle可等于任意UITableViewCellEditingStyle，该行代码只在iOS8.0以前版本有作用，也可以不实现。
+}
+
+-(NSArray *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewRowAction *deleteRoWAction = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleDestructive title:@"删除" handler:^(UITableViewRowAction *action, NSIndexPath *indexPath){
+        NSLog(@"删除");
+#warning  注意这里indexPath传值很奇怪，要先搞成数组
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObjects:indexPath, nil] withRowAnimation:UITableViewRowAnimationTop];
+        
+    }];
+    
+    return @[deleteRoWAction];
+}
+//实现左划按钮——————————————————————————
 
 #pragma mark TableViewDelegate
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
