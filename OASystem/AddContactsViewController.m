@@ -77,6 +77,7 @@
         }
         else if([judge isEqualToString:@"done"]){
             [self.navigationController popViewControllerAnimated:YES];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"addContact" object:nil];
         }
         else if ([judge isEqualToString:@"not done"]){
             [someAssist alertWith:@"添加失败，仅支持英文" viewController:self];

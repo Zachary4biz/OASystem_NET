@@ -46,8 +46,9 @@
     UIAlertAction *ok = [UIAlertAction actionWithTitle:@"注销" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"resign"]];
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        NSData *result = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:nil];
-        NSLog(@"%@",result);
+        [NSURLConnection sendAsynchronousRequest:request queue:[[NSOperationQueue alloc]init]  completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+            NSLog(@"%@",response);
+        }];
         [self.navigationController popToRootViewControllerAnimated:YES];
     }];
     UIAlertAction *no = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];

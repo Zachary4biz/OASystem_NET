@@ -39,8 +39,8 @@
     [self.tapView addGestureRecognizer:tap];
 }
 -(void)tap{
-    if (_boardDetail_touchBlock){
-        _boardDetail_touchBlock();
+    if (_boardDetail_tapBlock){
+        _boardDetail_tapBlock();
     }
 }
 @end

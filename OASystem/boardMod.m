@@ -18,7 +18,8 @@
     mod.ddl = jsonObject_dic[@"ddl"];
     mod.date = jsonObject_dic[@"date"];
     mod.ID = jsonObject_dic[@"Id"];
-
+    //初始化时，是否显示check默认为0
+    mod.check = 0;
     return mod;
 }
 
@@ -28,14 +29,16 @@
     [aCoder encodeObject:_ddl forKey:@"ddlKey"];
     [aCoder encodeObject:_date forKey:@"dateKey"];
     [aCoder encodeObject:_ID forKey:@"IDKey"];
+    [aCoder encodeInteger:_check forKey:@"checkKey"];
 }
 -(id)initWithCoder:(NSCoder *)aDecoder{
-    if (self == [super init]) {
+    if (self =[super init]) {
         _content = [aDecoder decodeObjectForKey:@"contentKey"];
         _provider = [aDecoder decodeObjectForKey:@"providerKey"];
         _ddl = [aDecoder decodeObjectForKey:@"ddlKey"];
         _date = [aDecoder decodeObjectForKey:@"dateKey"];
         _ID = [aDecoder decodeObjectForKey:@"IDKey"];
+        _check = [aDecoder decodeIntegerForKey:@"checkKey"];
     }
     return self;
 }

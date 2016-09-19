@@ -9,7 +9,7 @@
 #import "boardTHN.h"
 #import "boardMod.h"
 @interface boardTHN()<UIGestureRecognizerDelegate>
-@property (weak, nonatomic) IBOutlet UIView *tapView;//透明的view，用来接收点击
+
 @end
 
 @implementation boardTHN
@@ -23,6 +23,7 @@
 */
 -(void)setMod:(boardMod *)mod{
     _mod = mod;
+    //缩略图只显示部分公告内容
     self.contentLabel.text = mod.content;
     
 }
@@ -32,8 +33,20 @@
     return YES;
 }
 
+//开始触摸它，就把它放到所有view的最前面来
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    self.alpha = 0.3;
+    if (_boardTHN_touchBeginBlock) {
+        _boardTHN_touchBeginBlock();
+    }
+}
+
+//触摸点移动就跟随移动
 -(void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
+    //一开始移动就变透明
+    self.alpha = 0.3;
 
     //    NSLog(@"%s",__func__);//可以看看touches里面都有什么可以用的
     //获取UITouch对象
@@ -56,24 +69,51 @@
     
 }
 
-//开始触摸它，就把它放到所有view的最前面来
--(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+-(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    if (_boardTHN_moveBlock) {
-        _boardTHN_moveBlock();
+    self.alpha =1;
+    CGPoint curP = [[touches anyObject]locationInView:self];
+    if ([_delegate respondsToSelector:@selector(touchEnd:)]) {
+        [_delegate touchEnd:curP];
+    }
+    if(_boardTHN_touchEndBlock){
+        _boardTHN_touchEndBlock(curP);
+    }
+    
+}
+
+-(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    self.alpha = 1;
+    if (_boardTHN_toucheCancelBlock) {
+        _boardTHN_toucheCancelBlock();
     }
 }
 
 -(void)awakeFromNib{
+
+    //给缩略图设置tap手势识别
     UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tap)];
     tap.delegate = self;
-    [self.tapView addGestureRecognizer:tap];
+//    [self.tapView addGestureRecognizer:tap];
+    //这里tapView其实用不上
+    [self addGestureRecognizer:tap];
     
 }
+//实现tap手势的响应————点击缩略图时，弹出详情
 -(void)tap{
-    if (_boardTHN_touchBlock){
-        _boardTHN_touchBlock();
+    if (self.mod) {
+        if (_boardTHN_tapBlock){
+            _boardTHN_tapBlock();
+            
+        }
     }
+    else{
+        if (_boardTHN_tapWithoutModBlock){
+            _boardTHN_tapWithoutModBlock();
+        }
+    }
+
 }
 
 

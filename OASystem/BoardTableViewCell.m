@@ -12,6 +12,7 @@
 @property (weak, nonatomic) IBOutlet UILabel *provider;
 
 @property (weak, nonatomic) IBOutlet UILabel *content;
+@property (weak, nonatomic) IBOutlet UIImageView *checkView;
 
 @end
 
@@ -24,6 +25,7 @@
     _mod = mod;
     self.provider.text = mod.provider;
     self.content.text = mod.content;
+    self.checkView.hidden = !mod.check; //0就不显示，即隐藏=1
 }
 
 

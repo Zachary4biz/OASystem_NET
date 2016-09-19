@@ -17,5 +17,5 @@
 
 @property(nonatomic,strong)boardMod *mod;
 
-@property(nonatomic,strong)void (^boardDetail_touchBlock)();
+@property(nonatomic,strong)void (^boardDetail_tapBlock)();
 @end

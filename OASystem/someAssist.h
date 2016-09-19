@@ -52,6 +52,7 @@ typedef NS_ENUM(NSInteger,wait_action){
 //弹窗
 +(void)alertWith:(NSString *)str viewController:(UIViewController *)vc;
 +(void)alertAndExitWith:(NSString *)str viewController:(UIViewController *)vc;
++(void)alertAndDisappearWith:(NSString *)str viewController:(UIViewController *)vc;
 
 //获取时间
 +(NSString *)getDate;
@@ -62,13 +63,19 @@ typedef NS_ENUM(NSInteger,wait_action){
 +(NSString *)serverWith:(NSString *)str;//http://192.168.1.103:8080/str
 
 //获取图片
-+(NSString *)picWith:(NSString*)name :(NSString *)ext;
++(NSString *)picWithName:(NSString*)name ext:(NSString *)ext;
 //http://192.168.1.103:8080/static/pics/name.ext
 
 //获取数据
 +(void)getContacts_modArrWithCompletionBlock:(CompletionBlock)completion;
 +(void)getBoard_modArrWithCompletionBlock:(CompletionBlock)completion;
 +(void)getSelfInfo_json:(NSString *)usr Complemention:(CompletionBlock)complete;
++(void)getCloudDisk_modArrWithCompletionBlock:(CompletionBlock)completion;
+-(void)downloadFileWithrequest:(NSMutableURLRequest *)request; //要在代理里面判断是哪个session进去的，所以要用成员变量，必须是实例方法,同时将下载完成的block写到了代理didFInished里面
+@property(nonatomic,assign)float progress;//全局接收进度的，writeData接收，在download函数里面的block传出去
+@property(nonatomic,strong)void (^progressblock)(float progress);//传进度的block
+@property(nonatomic,strong)void (^completeDownloadBlock)(NSString *cachesPath);//因为使用了代理，所以下载完成也要在代理里面了，要单独搞个blcok出来
+@property(nonatomic,strong)void (^resultBlock)(NSError *error);//请求完毕的结果，放在代理里面，看有没有报错
 
 //蒙版
 -(void)showWait:(UIViewController *)VC;

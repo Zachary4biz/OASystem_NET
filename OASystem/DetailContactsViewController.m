@@ -11,6 +11,9 @@
 
 #import "ContactsViewController.h"
 #import "someAssist.h"
+
+#import "SDWebImage/UIImageView+WebCache.h"
+
 @interface DetailContactsViewController ()
 @property (weak, nonatomic) IBOutlet UIImageView *iconView;
 @property (weak, nonatomic) IBOutlet UILabel *nameLbl;
@@ -57,6 +60,7 @@
                 [someAssist serverWith:@"连接服务器失败"];
             }
             else if([judge isEqualToString:@"done"]){
+                [[NSNotificationCenter defaultCenter]postNotificationName:@"deleteContact" object:nil];
                 [self.navigationController popViewControllerAnimated:YES];
             }
             else if ([judge isEqualToString:@"not done"]){
@@ -70,23 +74,6 @@
     [self presentViewController:alertVC animated:YES completion:nil];
     
 }
-
-//-(NSMutableArray *)modArr
-//{
-//    _modArr = [NSMutableArray array];
-//    
-//    NSString *path = [[NSBundle mainBundle]pathForResource:@"contacts" ofType:@"plist"];
-//    NSArray *dictArr = [NSArray arrayWithContentsOfFile:path];
-//    
-//    for (NSDictionary *i in dictArr)
-//    {
-//        ContactsMod *mod = [ContactsMod contactsWithDict:i];
-//        [_modArr addObject:mod];
-//    }
-//    //    NSLog(@"%ld",_dataArr.count);
-//    //    NSLog(@"-----------");
-//    return _modArr;
-//}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -114,6 +101,15 @@
     [self.eidField addTarget:self action:@selector(textChange) forControlEvents:UIControlEventEditingDidEnd];
     [self.jobField addTarget:self action:@selector(textChange) forControlEvents:UIControlEventEditingDidEnd];
     
+}
+
+-(void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    NSString *iconStr = [someAssist picWithName:self.mod.Icon ext:@"jpg"];
+    NSURL *iconURL = [NSURL URLWithString:iconStr];
+    [self.iconView sd_setImageWithURL:iconURL];
+    [self.iconView sd_setImageWithURL:iconURL placeholderImage:nil options:SDWebImageProgressiveDownload];
 }
 
 -(void)textChange{

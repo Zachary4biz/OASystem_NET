@@ -14,6 +14,8 @@
 @property(nonatomic,strong)NSString *provider;
 @property(nonatomic,strong)NSString *ddl;
 @property(nonatomic,strong)NSString *ID;
+//确定是否显示选中的勾
+@property(nonatomic,assign)NSInteger check;
 
 +(instancetype)boardWithDict:(NSDictionary *)dic;
 @end

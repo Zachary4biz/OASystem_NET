@@ -62,7 +62,7 @@
     //3.设置背景颜色为空的颜色
     [[UINavigationBar appearance] setBackgroundColor:[UIColor clearColor]];
     //4.设置字体颜色（这只控制两个按钮的字体颜色，而不是title
-    [[UINavigationBar appearance] setTintColor:[UIColor redColor]];
+    [[UINavigationBar appearance] setTintColor:[UIColor blueColor]];
     //5.设置title的字体颜色
     
     

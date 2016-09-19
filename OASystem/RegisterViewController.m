@@ -74,37 +74,22 @@
     [self setUpBirthdayKeyboard];
     [self setUpCityKeyboard];
     
-    
-//加载accounts.plist文件,从沙盒环境中加载plist，新思路，不加载了，反正打算一开始只有两个默认账户，所以直接在self.accounts里面写入这俩
-    //self.accounts初始化好了这两个账户后，把它写入到沙盒的plist里面，相当于初始化沙盒的plist，而不是从沙盒加载plist，因为这段代码其实也
-    //用不到读取的功能，只是想初始化
-    //还是不对，这里要读取，因为需要跟后面注册的用户进行账户的比对，避免出现账户相同的用户
-//    NSString *path = [[NSBundle mainBundle]pathForResource:@"accounts" ofType:@"plist"];
 //    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) lastObject];
 //    path = [path stringByAppendingPathComponent:@"accounts.plist"];
+//    //如果文件不存在就创建文件，并写入初始数据
+//    NSFileManager *fileManager = [NSFileManager defaultManager];
+//    if (![fileManager fileExistsAtPath:path]) {
+//        [fileManager createFileAtPath:path contents:nil attributes:nil];
+//        //写入默认账户
+//        NSMutableArray *tempArr = [NSMutableArray array];
+//        NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@{@"account":@"zac4biz",@"password":@"123"},@{@"account":@"1",@"password":@"1"}, nil];
+//        [tempArr addObject:tempDict];
+//        [tempArr writeToFile:path atomically:YES];
+//    }
 //    self.accounts = [NSMutableArray arrayWithContentsOfFile:path];
-#warning 这里有可能会重新写入沙盒中的plist，导致每次初始化都覆盖掉了上次注册的用户，所以其实是不能有默认账户的，必须通过注册才行，除非在本程序以外提前初始化好这个plist
-//    self.accounts = [NSMutableArray arrayWithObjects:@{@"account":@"zac4biz",@"password":@"123"},@{@"account":@"1",@"password":@"1"}, nil];
-//    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) lastObject];
-//    path = [path stringByAppendingPathComponent:@"accounts.plist"];
-//    [self.accounts writeToFile:path atomically:YES];
-#warning 中间夹着的这段是初始化plist，这样处理之后plist就只剩两个默认账户了
-    NSString *path = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES) lastObject];
-    path = [path stringByAppendingPathComponent:@"accounts.plist"];
-    //如果文件不存在就创建文件，并写入初始数据
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    if (![fileManager fileExistsAtPath:path]) {
-        [fileManager createFileAtPath:path contents:nil attributes:nil];
-        //写入默认账户
-        NSMutableArray *tempArr = [NSMutableArray array];
-        NSDictionary *tempDict = [NSDictionary dictionaryWithObjectsAndKeys:@{@"account":@"zac4biz",@"password":@"123"},@{@"account":@"1",@"password":@"1"}, nil];
-        [tempArr addObject:tempDict];
-        [tempArr writeToFile:path atomically:YES];
-    }
-    self.accounts = [NSMutableArray arrayWithContentsOfFile:path];
     
 
-//    self.accounts = @[@{@"account":@"zac4biz",@"pwd":@123}];
+
 //监听账户、密码是否都输入了，不然不能点完成按钮
     [self.account addTarget:self action:@selector(textChange) forControlEvents:UIControlEventEditingChanged];
     [self.pwd1 addTarget:self action:@selector(textChange) forControlEvents:UIControlEventEditingChanged];
@@ -234,7 +219,7 @@
     NSLog(@"进入监听");
     //如果选好了省份，就刷新右边的城市
     if (component == 0) {
-#pragma mark 解决同时滚动省和市的时候，出现市的数组下标溢出的问题
+#pragma mark 解决同时滚动省和市的时候，出现市的数组下标溢出的问题。选好省后再选择市
 //这个问题的关键在于，在刷新城市部分显示出来的数据即component:2之前，就通过component:2的“selectedRowInComponent:0"获取了城市component的row，而，这时候省份如果改变了，获取到的row就只是前一个省份的城市的row，可能超过当前省份的城市数组下标
         self.provinceIndex = [pickerView selectedRowInComponent:0];
 #pragma mark 所为联动——根据左边的省份刷新右边的城市

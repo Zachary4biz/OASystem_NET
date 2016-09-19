@@ -48,7 +48,9 @@
 
 - (IBAction)messageBtn:(id)sender;
 
+- (IBAction)timeBtn:(id)sender;
 
+- (IBAction)CloudDisk:(id)sender;
 
 
 @end
@@ -76,11 +78,9 @@
     //设置联网状态
     app.networkActivityIndicatorVisible = YES;
     
-    
-    
-
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(deleteContact) name:@"deleteContact" object:nil];
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(addContact) name:@"addContact" object:nil];
    
-    
 //    //创建用户通知
 //    UIUserNotificationSettings *settings = [UIUserNotificationSettings settingsForTypes:UIUserNotificationTypeBadge categories:nil];
 //    
@@ -93,7 +93,23 @@
 
 }
 
+-(void)dealloc{
+    [[NSNotificationCenter defaultCenter]removeObserver:self];
+}
 
+-(void)deleteContact
+{
+    int contacts_count = [self.contacts_count intValue] -1 ;
+    NSString *contactsBtn_title = [NSString stringWithFormat:@"%d个联系人",contacts_count];
+    [self.contactsBtn setTitle:contactsBtn_title forState:UIControlStateNormal];
+}
+
+-(void)addContact
+{
+    int contacts_count = [self.contacts_count intValue] +1;
+    NSString *contactsBtn_title = [NSString stringWithFormat:@"%d个联系人",contacts_count];
+    [self.contactsBtn setTitle:contactsBtn_title forState:UIControlStateNormal];
+}
 
 -(void)viewDidAppear:(BOOL)animated{
     //设置时间按钮的文字为1s刷新一次,改成用Btn透明，后面放Lable和蓝色的View
@@ -112,12 +128,14 @@
 }
 
 -(void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
     self.view.alpha = 1;
 //    self.navigationController.navigationItem.leftBarButtonItem = nil;
 //    隐藏左按钮不是这样隐藏的，应该是self.navigationItem.hidesBackButton = YES;，已写在viewDidLoad里
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
     NSLog(@"disappear--------------------EntryView---------------------");
     self.view.alpha = 0;
     //此VC要消失的时候，停止刷新时间的self.timer，并释放掉
@@ -207,5 +225,13 @@
 
 - (IBAction)messageBtn:(id)sender {
     [self performSegueWithIdentifier:@"entry2message" sender:nil];
+}
+
+- (IBAction)timeBtn:(id)sender {
+    [self performSegueWithIdentifier:@"entry2time" sender:nil];
+}
+
+- (IBAction)CloudDisk:(id)sender {
+    [self performSegueWithIdentifier:@"entry2cloud" sender:nil];
 }
 @end
