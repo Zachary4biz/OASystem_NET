@@ -145,8 +145,9 @@
         weakCell.checkView.hidden = 0;
         [UIView animateWithDuration:0.3 animations:^{
             weakCell.progressView.alpha = 0;
-            weakCell.progressView.hidden= 1;
+            
         }];
+        
         //修改模型是为了复用时不出错，修改UI是为了即时效果
         
         //获取一下保存的路径，从someAssist-->Cell-->这里，block嵌套block
