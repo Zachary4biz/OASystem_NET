@@ -49,6 +49,7 @@
 		B64788291D6C5AD6004AA17B /* TimeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B64788281D6C5AD6004AA17B /* TimeViewController.m */; };
 		B647882C1D6C5B77004AA17B /* MessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B647882B1D6C5B77004AA17B /* MessageViewController.m */; };
 		B647882F1D6C5BC2004AA17B /* DetailMessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B647882E1D6C5BC2004AA17B /* DetailMessageViewController.m */; };
+		B6C227881D8FD91E00857C7A /* AddCloudDiskFileViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B6C227871D8FD91E00857C7A /* AddCloudDiskFileViewController.m */; };
 		B6D60B1E1D801436006ED7CA /* boardTHN.m in Sources */ = {isa = PBXBuildFile; fileRef = B6D60B1D1D801436006ED7CA /* boardTHN.m */; };
 		B6D60B201D801451006ED7CA /* boardTHN.xib in Resources */ = {isa = PBXBuildFile; fileRef = B6D60B1F1D801451006ED7CA /* boardTHN.xib */; };
 		B6D60B231D80690B006ED7CA /* boardMod.m in Sources */ = {isa = PBXBuildFile; fileRef = B6D60B221D80690B006ED7CA /* boardMod.m */; };
@@ -159,6 +160,8 @@
 		B647882B1D6C5B77004AA17B /* MessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageViewController.m; sourceTree = "<group>"; };
 		B647882D1D6C5BC2004AA17B /* DetailMessageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DetailMessageViewController.h; sourceTree = "<group>"; };
 		B647882E1D6C5BC2004AA17B /* DetailMessageViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DetailMessageViewController.m; sourceTree = "<group>"; };
+		B6C227861D8FD91E00857C7A /* AddCloudDiskFileViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AddCloudDiskFileViewController.h; sourceTree = "<group>"; };
+		B6C227871D8FD91E00857C7A /* AddCloudDiskFileViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AddCloudDiskFileViewController.m; sourceTree = "<group>"; };
 		B6D60B1C1D801436006ED7CA /* boardTHN.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = boardTHN.h; sourceTree = "<group>"; };
 		B6D60B1D1D801436006ED7CA /* boardTHN.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = boardTHN.m; sourceTree = "<group>"; };
 		B6D60B1F1D801451006ED7CA /* boardTHN.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = boardTHN.xib; sourceTree = "<group>"; };
@@ -352,6 +355,8 @@
 				B6272EBA1D87F6CE00566B87 /* CloudDiskTableViewCell.m */,
 				B6272EBC1D87F6E300566B87 /* CloudDiskMod.h */,
 				B6272EBD1D87F6E300566B87 /* CloudDiskMod.m */,
+				B6C227861D8FD91E00857C7A /* AddCloudDiskFileViewController.h */,
+				B6C227871D8FD91E00857C7A /* AddCloudDiskFileViewController.m */,
 			);
 			name = CloudDisk;
 			sourceTree = "<group>";
@@ -546,6 +551,7 @@
 				B6272EAF1D87D71200566B87 /* View+MASAdditions.m in Sources */,
 				B6D60B271D8078A5006ED7CA /* boardDetail.m in Sources */,
 				B6137C381D66E9110048E038 /* RegisterViewController.m in Sources */,
+				B6C227881D8FD91E00857C7A /* AddCloudDiskFileViewController.m in Sources */,
 				B6137C3B1D66EB170048E038 /* EntryViewController.m in Sources */,
 				B6D60BBC1D8406C7006ED7CA /* SDImageCache.m in Sources */,
 				B6D60B2F1D816512006ED7CA /* selfInfoMod.m in Sources */,

@@ -91,6 +91,19 @@
 
 
 
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    //无效，tableView中即使没有cell的地方也不是空白的，不会响应这个touche，能响应这个touch的是self.view??
+    if (self.judge4rightBtnItem == 1) {
+        //为1，当前选项卡为打开，需要关闭
+        self.judge4rightBtnItem = 0;
+        [UIView animateWithDuration:0.2 animations:^{
+            self.imgView.transform = CGAffineTransformRotate(self.imgView.transform, M_PI_2);
+            self.moreBtnView.transform = CGAffineTransformIdentity;
+            self.moreBtnView.alpha = 0;
+        }];
+    }
+}
 //下拉刷新调用
 -(void)refreshContactsWithControl:(UIRefreshControl *)control{
     //重新联网获取数据
@@ -357,25 +370,26 @@
 }
 
 -(void)clickRightBtnItem{
-    //初始为0，点击一次后judge变成1
-    self.judge4rightBtnItem = !self.judge4rightBtnItem;
-    if (self.judge4rightBtnItem == 1) {
-        //judge为1，即点击了奇数次
-        [UIView animateWithDuration:0.3 animations:^{
+    //judge初始为0
+    if (self.judge4rightBtnItem == 0) {
+        //judge为0，当前为关闭，需要打开选项卡
+        [UIView animateWithDuration:0.2 animations:^{
             self.imgView.transform = CGAffineTransformRotate(self.imgView.transform, M_PI_2);
-            self.moreBtnView.transform = CGAffineTransformMakeTranslation(0, 60);
+            self.moreBtnView.transform = CGAffineTransformMakeTranslation(0, 120);
             self.moreBtnView.alpha = 1;
         }];
     }
     else{
-        //judge为0，点击偶数次
-        [UIView animateWithDuration:0.3 animations:^{
+        //judge为1,当前为打开，需要关闭选项卡
+        [UIView animateWithDuration:0.2 animations:^{
             self.imgView.transform = CGAffineTransformRotate(self.imgView.transform, M_PI_2);
             self.moreBtnView.transform = CGAffineTransformIdentity;
             self.moreBtnView.alpha = 0;
         }];
         
     }
+    //操作一次后judge取反
+    self.judge4rightBtnItem = !self.judge4rightBtnItem;
 
 }
 - (IBAction)editBtn:(id)sender {

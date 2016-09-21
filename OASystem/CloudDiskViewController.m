@@ -10,7 +10,8 @@
 #import "CloudDiskMod.h"
 #import "CloudDiskTableViewCell.h"
 #import "someAssist.h"
-@interface CloudDiskViewController ()<UITableViewDelegate,UITableViewDataSource>
+@interface CloudDiskViewController ()<UITableViewDelegate,UITableViewDataSource,NSURLSessionDataDelegate>
+- (IBAction)addBtn:(id)sender;
 @property (weak, nonatomic) IBOutlet UITableView *cloudTableView;
 @property (strong,nonatomic) NSMutableArray *modArr;
 @property(strong,nonatomic) UIRefreshControl *control;
@@ -100,6 +101,16 @@
     cell.mod = self.modArr[indexPath.row];
     
 //    cell.downloadBtn.enabled = cell.mod.judge4downloadBtn; //一开始初始的judge是0，导致不能点击按钮
+    if (cell.mod.judge4downloadBtn == 0) {
+        //为0 表示点击了偶数次
+        cell.downloadBtn.titleLabel.text = @"下载";
+        [cell.downloadBtn setTitle:@"下载" forState:UIControlStateNormal];
+    }
+    else{
+        //为1 表示点击了奇数次
+        cell.downloadBtn.titleLabel.text = @"暂停";
+        [cell.downloadBtn setTitle:@"暂停" forState:UIControlStateNormal];
+    }
     cell.progressView.alpha = 1;
     cell.progressView.hidden = !cell.mod.judge4progressView;
     cell.checkView.hidden = !cell.mod.judge4checkView;
@@ -116,15 +127,25 @@
     typeof(cell) __weak weakCell = cell;
     //设置点击下载按钮的block——实现按钮失效、进度条显示、隐藏checkView
     cell.clickDownloadBtnBlock = ^(){
+        //判断resumeData
+        NSString *tempFileName = [NSString stringWithFormat:@"resume_%@",weakCell.mod.fileName];
+        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:tempFileName];
+        NSData *resumeData = [NSData dataWithContentsOfFile:path];
+        if (resumeData) {
+            //如果有resumeData，就接着上次的下载，
+        }
         //更改模型
         CloudDiskMod *mod = self.modArr[indexPath.row];
-        mod.judge4downloadBtn = 0; //按钮不能用
+        mod.judge4downloadBtn = 1; //为1，点击了奇数次按钮，表示按钮的title 下载-->暂停
         mod.judge4progressView = 1; //显示进度条
         mod.judge4checkView = 0;//隐藏checkView
         self.modArr[indexPath.row] = mod; //返回给modArr
         
         //更改UI
-        weakCell.downloadBtn.enabled = 0;
+//        weakCell.downloadBtn.enabled = 0;
+        weakCell.downloadBtn.titleLabel.text = @"暂停";
+        [weakCell.downloadBtn setTitle:@"暂停" forState:UIControlStateNormal];
+        
         weakCell.checkView.hidden = 1;
         weakCell.progressView.hidden= 0;
         weakCell.progressView.alpha=1;
@@ -137,24 +158,25 @@
         CloudDiskMod *mod = self.modArr[indexPath.row];
         mod.judge4checkView = 1; //显示checView
         mod.judge4progressView = 0; //不显示progresssView
-        mod.judge4downloadBtn = 1; //可用下载按钮
+        mod.judge4downloadBtn = 0; //按钮再次为0，表示下载完成，暂停--->下载
         self.modArr[indexPath.row] = mod; //修改后的mod返回到modArr中
         
         //修改UI
-        weakCell.downloadBtn.enabled = 1;
+//        weakCell.downloadBtn.enabled = 1;
+        weakCell.downloadBtn.titleLabel.text = @"下载";
+        [weakCell.downloadBtn setTitle:@"下载" forState:UIControlStateNormal];
         weakCell.checkView.hidden = 0;
         [UIView animateWithDuration:0.3 animations:^{
             weakCell.progressView.alpha = 0;
             
         }];
-        
+
         //修改模型是为了复用时不出错，修改UI是为了即时效果
         
         //获取一下保存的路径，从someAssist-->Cell-->这里，block嵌套block
         weakCell.mod.savePath = cachesPath;
         //以文件名为key，保存路径在字典中
         _cloudDiskFileDict = [NSMutableDictionary dictionary];
-//        _cloudDiskFileDict = [NSKeyedUnarchiver unarchiveObjectWithFile:cloudDiskFilePath];
         [_cloudDiskFileDict setDictionary:[NSKeyedUnarchiver unarchiveObjectWithFile:cloudDiskFilePath]];
         
         [_cloudDiskFileDict setObject:weakCell.mod.savePath forKey:[NSString stringWithFormat:@"%@",weakCell.mod.fileName]];
@@ -164,7 +186,7 @@
     cell.downloadResultBlock = ^(NSError *er)
     {
         if (er) {
-            [someAssist alertAndDisappearWith:@"服务器错误" viewController:self];
+//            [someAssist alertAndDisappearWith:@"服务器错误" viewController:self];
         }
     };
     cell.downloadProgressBlock = ^(float progress){
@@ -179,10 +201,30 @@
         self.modArr[indexPath.row] = mod;
         
     };
+    cell.clickSuspendBtnBlock = ^(NSData *resumeData){
+        //点击暂停按钮更新UI并修改Mod
+        CloudDiskMod *mod = self.modArr[indexPath.row];
+        mod.judge4downloadBtn = 0; //暂停状态下点击，暂停-->下载
+        self.modArr[indexPath.row] = mod;
+        //保存resumeData到本地文件，以resume_fileName命名
+        dispatch_async(dispatch_get_main_queue(), ^{
+            weakCell.downloadBtn.titleLabel.text = @"下载";
+            [weakCell.downloadBtn setTitle:@"下载" forState:UIControlStateNormal];
+        });
+        NSString *tempFileName = [NSString stringWithFormat:@"resume_%@",weakCell.mod.fileName];
+        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:tempFileName];
+        NSLog(@"%@",path);
+        [resumeData writeToFile:path atomically:YES];
+    };
     
     return cell;
 }
 
+//------------------------------------NSURLSession的代理部分--------------------------
+#pragma NSURLSession代理
 
 
+- (IBAction)addBtn:(id)sender {
+    [self.navigationController performSegueWithIdentifier:@"cloudDisk2add" sender:nil];
+}
 @end

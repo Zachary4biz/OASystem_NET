@@ -6,10 +6,12 @@
 //  Copyright © 2016年 周桐. All rights reserved.
 //
 
+
 #import "someAssist.h"
 #import "ContactsMod.h"
 #import "boardMod.h"
 #import "CloudDiskMod.h"
+
 
 
 
@@ -23,6 +25,7 @@
 //用在代理里面识别是哪一个session
 @property(nonatomic,strong)NSURLSession *sessionDownload;//下载云盘文件用的下载session
 @property(nonatomic,strong)NSString *cachesPath;//保存的路径，要传给云盘的VC
+@property(nonatomic,strong)NSData *resumeData;//跟downloadTask配套使用，用来在cancel后，当恢复标识用
 
 @end
 
@@ -30,11 +33,20 @@
 //------------------------------------------以下一些小功能------------------------------------
 #pragma 小功能
 
++ (instancetype)shareAssist {
+    static someAssist *shareAssist = nil;
+    static dispatch_once_t predicate;
+    dispatch_once(&predicate, ^{
+        shareAssist = [[self alloc] init];
+    });
+    return shareAssist;
+}
+
 +(NSString *)serverWith:(NSString *)str{
     
     //    NSString *root = @"http://192.168.1.104:8080";
     //    NSString *root = @"http://127.0.0.1:8080";
-        NSString *root = @"http://192.168.10.102:8080";
+        NSString *root = @"http://192.168.10.113:8080";
 //    NSString *root = @"http://192.168.191.1:8080";
     NSString *urlStr = [NSString stringWithFormat:@"%@/%@",root,str];
     return urlStr;
@@ -307,16 +319,41 @@
 //下载文件（用于云盘下载按钮），不能再搞类方法了，必须用实例方法，不然：类方法-->不能用成员变量-->不能全局找出这个session-->不能在代理中区分这个session
 -(void)downloadFileWithrequest:(NSMutableURLRequest *)request
 {
+//    [_downloadTask addObserver:self forKeyPath:@"downloadTask" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
     //使用了代理，所以下载完成后的操作block要写在代理里面了,completeDownloadBlock
     //建立下载任务 DownloadTask
     self.sessionDownload = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[[NSOperationQueue alloc]init]];
+    //获得resumeData
+    if (_getLocalResumeDataBlock()) {
+        _resumeData = _getLocalResumeDataBlock();
+    }
+    //检查resumeData
+    if (_resumeData) {
+        _downloadTask = [_sessionDownload downloadTaskWithResumeData:_resumeData];
+    }
+    else{
+        _downloadTask = [_sessionDownload downloadTaskWithRequest:request];
+    }
     
-    NSURLSessionDownloadTask *downloadTask = [_sessionDownload downloadTaskWithRequest:request];
     
     //启动下载任务
-    [downloadTask resume];
+    [_downloadTask resume];
 }
 
+//-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(void *)context
+//{
+//    if ([keyPath isEqualToString:@"downloadTaks"]) {
+//        NSLog(@"值发生改变---");
+//    }
+//}
+//停止下载，类似点击暂停按钮
+-(void)suspendDownloadWithCompleteBlock:(CompletionBlock)completion
+{
+    [_downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
+        completion(resumeData);
+    }];
+#warning 未完成，如果要实现退出程序再打开还能继续下载，这里需要把暂停前写好的文件提出来，继续下载，见08-nsurlsession断点下载
+}
 //————————————————————————————————————发送网络请求获取数据————————————————————————————
 
 
@@ -352,7 +389,7 @@
 //downloadTask的代理方法
 -(void)URLSession:(NSURLSession *)session downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes
 {
-    
+    NSLog(@"有没有来到这里？到底为什么在suspend函数里面的_downloadTask是nil");
 }
 
 // 开始写入数据，会多次调用
@@ -361,14 +398,14 @@
     //totalBytesExpectedToWrite：文件总大小
     //totalBytesWritten：已写入的大小
     //bytesWritten：当前这次调用要写多少
-    NSLog(@"writeData");
+//    NSLog(@"writeData");
     if (session == _sessionDownload) {
         self.progress = 1.0 * totalBytesWritten/totalBytesExpectedToWrite;
-        NSLog(@"%lld-%lld",totalBytesWritten,totalBytesExpectedToWrite);
-        NSLog(@"progress is ---%f", self.progress);
+//        NSLog(@"%lld-%lld",totalBytesWritten,totalBytesExpectedToWrite);
+//        NSLog(@"progress is ---%f", self.progress);
         if (_progressblock) {
             //这里用来更新progressUI的，需要在主线程调用
-            NSLog(@"progress is ---%f", self.progress);
+//            NSLog(@"progress is ---%f", self.progress);
             dispatch_async(dispatch_get_main_queue(), ^{
                 _progressblock(_progress);
             });

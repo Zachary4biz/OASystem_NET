@@ -154,7 +154,7 @@
         //else，rightBtnItem的title是取消，说明正在进行选择模式
         //但是要判断是系统的选择模式还是自定义选择模式
         if (self.boardTableView.isEditing){
-            //如果是在编辑模式，选中时就不用做其他操作了
+            //如果是在编辑模式，选中时就不用做其他操作了，自动实现了点两次取消
         }
         else{
             //如果是自定义选择
@@ -181,7 +181,10 @@
     if (self.boardTableView.isEditing) {
         //如果是在编辑模式下点击的按钮
         //因为是添加，所以要先读取原来的数据
-        self.choseArr =[NSKeyedUnarchiver unarchiveObjectWithFile:board2ShowModPath];
+        //注意要预防新程序没有文件的情况，声明一下这个数组，免得成nil
+        self.choseArr = [NSMutableArray array];
+        [self.choseArr setArray:[NSKeyedUnarchiver unarchiveObjectWithFile:board2ShowModPath]];
+//        self.choseArr =[NSKeyedUnarchiver unarchiveObjectWithFile:board2ShowModPath];
         //取到所选择的行得到的是indexPath的一个数组
         NSArray *indexPathsArr = [self.boardTableView indexPathsForSelectedRows];
         if (indexPathsArr.count+self.choseArr.count >12) {

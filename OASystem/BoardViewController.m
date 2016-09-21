@@ -21,6 +21,7 @@
 @property (nonatomic,strong)NSMutableArray *boardModArr;
 @property(nonatomic,assign)CGPoint curP; //用来获取全局上的触摸点位置
 @property(nonatomic,strong) NSMutableArray *recorder4Frame;//换了思路，数组保存frame就行了，数组的索引就是tag。 老想法：数组保存字典，字典是tag和frame，
+@property(nonatomic,strong)NSMutableArray *recorder4DefaultFrame; //加载的初始九宫格的frame，这个是为了避免第一次打开程序，recorder4Frame是空，用这个来记录默认的九宫格布局
 @property(nonatomic,assign)NSInteger judge;//判断是不是从tap跳转到moreBoard页面
 @end
 
@@ -72,13 +73,18 @@
     //加载12个xib
     [self loadXibs];
     //尝试加载本地布局文件
-    self.recorder4Frame = [NSKeyedUnarchiver unarchiveObjectWithFile:boardTHNFramePath];
-    if (self.recorder4Frame){
+    //预防新程序本地文件为空
+    self.recorder4Frame = [NSMutableArray array];
+    [self.recorder4Frame setArray:[NSKeyedUnarchiver unarchiveObjectWithFile:boardTHNFramePath]];
+//    self.recorder4Frame = [NSKeyedUnarchiver unarchiveObjectWithFile:boardTHNFramePath];
+    if (self.recorder4Frame.count){
         //如果本地有布局文件
         [self loadXibWithLocalFrame]; //这个移动换位置的效果思路就是view的tag都不变，然后根据tag去保存有frame的数组里面从0到n依次拿frame，所以换了位置后要把frame数组里的对应的两个frame也交换。
     }
     else{
         //本地没有布局文件，就不加载本地Frame就行了，使用加载xib的九宫格默认布局
+        //并且把默认的布局赋给这个recorder4Frame数组，这个在block里面有用到
+        self.recorder4Frame = self.recorder4DefaultFrame;
     }
     //遍历所有子view，给它们设置block
     [self setBoardTHNViewBlocks];
@@ -118,7 +124,7 @@
         temp_recorder = 12;
     }
     //初始化用来保存frame和tag的字典
-    _recorder4Frame = [NSMutableArray array];
+    _recorder4DefaultFrame = [NSMutableArray array];
     
     for (int i=0; i<12;i++){
         boardTHN *boardTHNView = [[NSBundle mainBundle]loadNibNamed:@"boardTHN" owner:nil options:nil][0];
@@ -134,7 +140,7 @@
     
         NSValue *frame = [NSValue valueWithCGRect:boardTHNView.frame];
         
-        [_recorder4Frame addObject:frame];
+        [_recorder4DefaultFrame addObject:frame];
         
         [self.boardView addSubview:boardTHNView];
         
@@ -197,8 +203,13 @@
                     //                    [self saveFrame];
                     break;
                 }
-                else{
-//                    weakSelf.frame = frame_touched;
+                //-1因为从0开始计数啊！
+                else if(i == self.recorder4Frame.count -1 ){
+                    //运行这里的条件其实有两个：1.i达到最后一个 2.没有执行上一个if（因为那里有break）
+                    //所以说明遍历到最后一个都没有找到curP在哪个frame，即curP在空白处
+                    [UIView animateWithDuration:0.3 animations:^{
+                        weakSelf.frame = frame_touched;
+                    }];
                 }
                 
             }

@@ -72,25 +72,7 @@
 //    [someAssist serverWith:@"editusr"];//notdone
 }
 
-//封装起来---联网获取信息
-//-(void)getResult
-//{
-////    id result = [someAssist getSelfInfo_json];
-//    if ([result isKindOfClass:[NSString class]]) {
-//        if ([result isEqualToString:@"connect fail"]) {
-//            [someAssist alertWith:@"连接服务器失败" viewController:self];
-//        }
-//        else if ([result isEqualToString:@"json fail"]){
-//            [someAssist alertWith:@"数据读取错误" viewController:self];
-//        }
-//        else if ([result isEqualToString:@"unknown"]){
-//            [someAssist alertWith:@"未知错误" viewController:self];
-//        }
-//    }
-//    else{
-//        self.mod = [selfInfoMod selfInfoWithDict:result];
-//    }
-//}
+
 
 //封装起来---赋值UI（最好回到主线程执行）
 -(void)setTextFields

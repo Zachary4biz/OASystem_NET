@@ -14,6 +14,7 @@
 #pragma UI
 @property (weak, nonatomic) IBOutlet UILabel *fileName;
 @property (weak, nonatomic) IBOutlet UILabel *provider;
+@property (strong, nonatomic) someAssist *download;
 - (IBAction)downloadBtn:(id)sender;
 
 
@@ -38,7 +39,8 @@
 //    self.mod.judge4downloadBtn = 1;
 //    self.mod.judge4progressView = 0;
 //    self.mod.judge4checkView = 0;
-    self.downloadBtn.enabled=YES;
+//    self.downloadBtn.enabled=YES;
+    
     self.progressView.hidden=YES;
     self.checkView.hidden = YES;
     
@@ -47,7 +49,9 @@
 - (void)awakeFromNib {
     [super awakeFromNib];
     // Initialization code
-
+    //每个cell都有一个自己的download对象
+    _download = [[someAssist alloc]init];
+    
     
 }
 
@@ -60,44 +64,66 @@
 
 - (IBAction)downloadBtn:(id)sender {
     
-    //点击下载按钮后，显示progressView，按钮失效，
-    if (_clickDownloadBtnBlock) {
-        _clickDownloadBtnBlock();
-    }
-    
-    NSString *fileStr = [someAssist serverWith:self.downloadPath];
-    NSURL *fileURL = [NSURL URLWithString:fileStr];
-    NSMutableURLRequest *request_get = [NSMutableURLRequest requestWithURL:fileURL];
-    request_get.timeoutInterval = 18000;
-    
-    //这个进度条是唯一一个在cell里面做的UI变化，还不知道好不好使______其实UI变化可以在cell里面做，UI变化后的标识如各种judge必须在VC的self.modArr里面更改才有效果，不然复用的时候cell.mod= self.modArr[indexPath.row];会把cell.mod里面保存的更改覆盖掉的。
-    someAssist *download = [[someAssist alloc]init];
-    download.progressblock=^(float progress){
-        if (_downloadProgressBlock) {
-            _downloadProgressBlock(progress);
-        }
-//        self.mod.progress = progress; //这里有问题，这个self.mod会被复用的
-//        self.progressView.progress = self.mod.progress;
-    };
-    
-    [download downloadFileWithrequest:request_get];
-    
-    download.completeDownloadBlock = ^(NSString *cachesPath){
-        //回到主线程，判断并更新UI
-        dispatch_async(dispatch_get_main_queue(), ^{
-            //下载完成后，执行saveBlock，将用一个字典，以文件名为key，文件保存路径为value
-            if (_downloadCompleteBlock) {
-                _downloadCompleteBlock(cachesPath);
-            }
-        });
-    };
-    
-    download.resultBlock = ^(NSError *error){
-        if (_downloadResultBlock) {
-            _downloadResultBlock(error);
+    if ([_downloadBtn.titleLabel.text isEqualToString:@"下载"]) {
+        //点击下载按钮后，显示progressView，按钮失效，
+        if (_clickDownloadBtnBlock) {
+            _clickDownloadBtnBlock();
         }
         
-    };
+        //准备下载
+        NSString *fileStr = [someAssist serverWith:self.downloadPath];
+        NSURL *fileURL = [NSURL URLWithString:fileStr];
+        NSMutableURLRequest *request_get = [NSMutableURLRequest requestWithURL:fileURL];
+        request_get.timeoutInterval = 18000;
+        
+        //下载前先传一下resumeData
+        //把resumeData返回给download对象，在它的类里面会检查这个resumeData
+        NSString *fileName = [NSString stringWithFormat:@"resume_%@",self.mod.fileName];
+        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:fileName];
+        NSData *resumeData = [NSData dataWithContentsOfFile:path];
+        _download.getLocalResumeDataBlock = ^(){
+            return resumeData;
+        };
+        //开始下载
+        [_download downloadFileWithrequest:request_get];
+        
+        //三个传值block——进度、完成后的下载路径、请求完毕的结果（是否有error）
+        //这个进度条是唯一一个在cell里面做的UI变化，还不知道好不好使______其实UI变化可以在cell里面做，UI变化后的标识如各种judge必须在VC的self.modArr里面更改才有效果，不然复用的时候cell.mod= self.modArr[indexPath.row];会把cell.mod里面保存的更改覆盖掉的。
+        typeof(self) __weak weakSelf = self;
+        _download.progressblock=^(float progress){
+            if (weakSelf.downloadProgressBlock) {
+                weakSelf.downloadProgressBlock(progress);
+            }
+    //        self.mod.progress = progress; //这里有问题，这个self.mod会被复用的
+    //        self.progressView.progress = self.mod.progress;
+        };
+
+        _download.completeDownloadBlock = ^(NSString *cachesPath){
+            //回到主线程，判断并更新UI
+            dispatch_async(dispatch_get_main_queue(), ^{
+                //下载完成后，执行saveBlock，将用一个字典，以文件名为key，文件保存路径为value
+                if (weakSelf.downloadCompleteBlock) {
+                    weakSelf.downloadCompleteBlock(cachesPath);
+                }
+            });
+        };
+        
+        _download.resultBlock = ^(NSError *error){
+            if (weakSelf.downloadResultBlock) {
+                weakSelf.downloadResultBlock(error);
+            }
+        };
+    }
+    else{
+        //暂停情况下点击
+        [_download suspendDownloadWithCompleteBlock:^(id object) {
+            //传过来的object就是resumeData
+            if (_clickSuspendBtnBlock){
+                _clickSuspendBtnBlock(object);
+            }
+        }];
+
+    }
 }
 
 
