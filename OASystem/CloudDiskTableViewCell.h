@@ -20,5 +20,5 @@
 @property(nonatomic,strong) void (^clickDownloadBtnBlock)();//在VC实现这个block
 @property(nonatomic,strong)void(^downloadResultBlock)(NSError *er);//请求完毕后，是否有出错，可以从这个来处理
 @property(nonatomic,strong) void(^downloadProgressBlock)(float progress);//下载进度也要在self.modArr里赋值
-@property(nonatomic,strong) void(^clickSuspendBtnBlock)(NSData *data); //下载按钮变成暂停时，点击了的block
+@property(nonatomic,strong) void(^clickSuspendBtnBlock)(); //下载按钮变成暂停时，点击了的block
 @end

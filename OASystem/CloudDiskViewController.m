@@ -116,24 +116,18 @@
     cell.checkView.hidden = !cell.mod.judge4checkView;
     //根据本地的字典，判断这个cell的文件名是否存在，从而判断是否下载过
     NSMutableDictionary *cloudDiskFileDic = [NSKeyedUnarchiver unarchiveObjectWithFile:cloudDiskFilePath];
-    id temp_judge = [cloudDiskFileDic objectForKey:[NSString stringWithFormat:@"%@",cell.mod.fileName]];
-    if (temp_judge) {
+    id temp_judge4checkView = [cloudDiskFileDic objectForKey:[NSString stringWithFormat:@"%@",cell.mod.fileName]];
+    if (temp_judge4checkView) {
         cell.checkView.hidden = NO;
     }
     else{
         cell.checkView.hidden = YES;
     }
     
+    
     typeof(cell) __weak weakCell = cell;
     //设置点击下载按钮的block——实现按钮失效、进度条显示、隐藏checkView
     cell.clickDownloadBtnBlock = ^(){
-        //判断resumeData
-        NSString *tempFileName = [NSString stringWithFormat:@"resume_%@",weakCell.mod.fileName];
-        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:tempFileName];
-        NSData *resumeData = [NSData dataWithContentsOfFile:path];
-        if (resumeData) {
-            //如果有resumeData，就接着上次的下载，
-        }
         //更改模型
         CloudDiskMod *mod = self.modArr[indexPath.row];
         mod.judge4downloadBtn = 1; //为1，点击了奇数次按钮，表示按钮的title 下载-->暂停
@@ -187,6 +181,7 @@
     {
         if (er) {
 //            [someAssist alertAndDisappearWith:@"服务器错误" viewController:self];
+            NSLog(@"%@",er);
         }
     };
     cell.downloadProgressBlock = ^(float progress){
@@ -201,20 +196,14 @@
         self.modArr[indexPath.row] = mod;
         
     };
-    cell.clickSuspendBtnBlock = ^(NSData *resumeData){
+    cell.clickSuspendBtnBlock = ^(){
         //点击暂停按钮更新UI并修改Mod
+        //根据断点查看，这里就是在thread1进行的
+        weakCell.downloadBtn.titleLabel.text = @"下载";
+        [weakCell.downloadBtn setTitle:@"下载" forState:UIControlStateNormal];
         CloudDiskMod *mod = self.modArr[indexPath.row];
         mod.judge4downloadBtn = 0; //暂停状态下点击，暂停-->下载
         self.modArr[indexPath.row] = mod;
-        //保存resumeData到本地文件，以resume_fileName命名
-        dispatch_async(dispatch_get_main_queue(), ^{
-            weakCell.downloadBtn.titleLabel.text = @"下载";
-            [weakCell.downloadBtn setTitle:@"下载" forState:UIControlStateNormal];
-        });
-        NSString *tempFileName = [NSString stringWithFormat:@"resume_%@",weakCell.mod.fileName];
-        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:tempFileName];
-        NSLog(@"%@",path);
-        [resumeData writeToFile:path atomically:YES];
     };
     
     return cell;

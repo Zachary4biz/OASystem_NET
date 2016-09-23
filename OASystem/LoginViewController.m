@@ -64,8 +64,9 @@
     if (self.rememberPwdSwitch.on==YES){
         self.pwd.text = saveArr[0][@"pwd"];
         //自动登录
-        if (self.autoLoginSwitch.on==YES){
+        if (self.autoLoginSwitch.on==YES && self.UIloginBtn.enabled == YES){
             [self loginBtn];
+            
         }
     }
     

@@ -24,8 +24,13 @@
 #pragma functional
 //用在代理里面识别是哪一个session
 @property(nonatomic,strong)NSURLSession *sessionDownload;//下载云盘文件用的下载session
-@property(nonatomic,strong)NSString *cachesPath;//保存的路径，要传给云盘的VC
+@property(nonatomic,strong)NSURLSessionDownloadTask *downloadTask; //下载的task，这里是为了在下载函数中开始它，在暂停函数中停止它，所以是全局
+@property(nonatomic,strong)NSURLSessionDataTask *dataTask4download;//用来下载的dataTask，在断点下载方面比downloadTask好使
+
 @property(nonatomic,strong)NSData *resumeData;//跟downloadTask配套使用，用来在cancel后，当恢复标识用
+@property(nonatomic,strong)NSOutputStream *stream;//写文件的流对象
+@property(nonatomic,assign)long contentLength; //需要下载的文件总长度
+
 
 @end
 
@@ -44,10 +49,10 @@
 
 +(NSString *)serverWith:(NSString *)str{
     
-    //    NSString *root = @"http://192.168.1.104:8080";
+//        NSString *root = @"http://192.168.1.154:8080";
     //    NSString *root = @"http://127.0.0.1:8080";
-        NSString *root = @"http://192.168.10.113:8080";
-//    NSString *root = @"http://192.168.191.1:8080";
+//        NSString *root = @"http://192.168.10.113:8080";
+    NSString *root = @"http://192.168.191.1:8080";
     NSString *urlStr = [NSString stringWithFormat:@"%@/%@",root,str];
     return urlStr;
     
@@ -319,6 +324,7 @@
 //下载文件（用于云盘下载按钮），不能再搞类方法了，必须用实例方法，不然：类方法-->不能用成员变量-->不能全局找出这个session-->不能在代理中区分这个session
 -(void)downloadFileWithrequest:(NSMutableURLRequest *)request
 {
+    /*
 //    [_downloadTask addObserver:self forKeyPath:@"downloadTask" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:nil];
     //使用了代理，所以下载完成后的操作block要写在代理里面了,completeDownloadBlock
     //建立下载任务 DownloadTask
@@ -338,6 +344,21 @@
     
     //启动下载任务
     [_downloadTask resume];
+     */
+#pragma 使用dataTask的方式来做，虽然
+    //创建session
+    self.sessionDownload = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[[NSOperationQueue alloc]init]];
+    
+    //修改request的请求头,
+    NSInteger beginLength = [[[NSFileManager defaultManager] attributesOfItemAtPath:self.cachesPath error:nil][NSFileSize] integerValue];
+    NSString *range = [NSString stringWithFormat:@"bytes=%zd-",beginLength];
+    [request setValue:range forHTTPHeaderField:@"Range"];
+    //创建任务
+    _dataTask4download = [_sessionDownload dataTaskWithRequest:request];
+    //开启下载任务
+    [_dataTask4download resume];
+    
+    
 }
 
 //-(void)addObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath options:(NSKeyValueObservingOptions)options context:(void *)context
@@ -347,26 +368,36 @@
 //    }
 //}
 //停止下载，类似点击暂停按钮
--(void)suspendDownloadWithCompleteBlock:(CompletionBlock)completion
+-(void)suspendDownload
 {
-    [_downloadTask cancelByProducingResumeData:^(NSData * _Nullable resumeData) {
-        completion(resumeData);
-    }];
-#warning 未完成，如果要实现退出程序再打开还能继续下载，这里需要把暂停前写好的文件提出来，继续下载，见08-nsurlsession断点下载
+
+    [_dataTask4download suspend];
+
+}
+-(void)continueTask
+{
+    
 }
 //————————————————————————————————————发送网络请求获取数据————————————————————————————
 
 
 //------------------------------------NSURLSession的代理------------------------------------------
 #pragma NSURLSessionDataDelegate
-//dataTask的代理方法
 
+//dataTask的代理方法
 //1.收到服务器响应
 -(void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler
 {
     if (session == _sessionDownload) {
-        NSLog(@"didReceiveResponse");
-        NSLog(@"%s",__func__);
+//        开始下载，打印一下了路径
+        NSLog(@"%@",response);
+        NSLog(@"%@",self.cachesPath);
+        //本次下载要下的长度加上前次断点已下载的长度为总长度 --错！-- 因为这里用的expectedContentLength，直接就是服务器源文件多大就多长，不是本次要请求的数据有多长，不用加上本地的文件长度
+        self.contentLength = response.expectedContentLength;
+        NSLog(@"contentLength is ---%ld",self.contentLength);
+#warning 服务器没写好，只能在客户端判断了，已有文件等于预期的就说明已经下载好了，再点下载就删了重下
+        self.stream = [NSOutputStream outputStreamToFileAtPath:self.cachesPath append:YES];
+        [self.stream open];
     }
     //允许处理服务器响应，这样才会继续接收服务器数据
     completionHandler(NSURLSessionResponseAllow);
@@ -375,17 +406,42 @@
 -(void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data
 {
     if (session == _sessionDownload) {
-        NSLog(@"%s",__func__);
+//        NSLog(@"%s",__func__);
+        //写入数据
+        [self.stream write:data.bytes maxLength:data.length];
+        //目前已下载的长度
+        NSInteger downloadLength = [[[NSFileManager defaultManager] attributesOfItemAtPath:self.cachesPath error:nil][NSFileSize] integerValue];
+        
+        //下载进度
+        float progress = 1.0 * downloadLength/self.contentLength;
+        NSLog(@"progress is --%f",progress);
+        if(_progressblock){
+            _progressblock(progress);
+        }
     }
 }
 //3.请求完毕（成功失败都来这里），有错就有error，没有就error为空，不同task的这个代理是一样的，写在下面了
-//-(void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
-//{
-//    if (session == _sessionDownload) {
-//        NSLog(@"%s",__func__);
-//    }
-//}
+-(void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
+{
+    if (session == _sessionDownload) {
+        NSLog(@"%s",__func__);
+        
+        [self.stream close];
+        self.stream = nil;
+        if (error) {
+            NSLog(@"er is-- %@",error);
+        }
+        else{
+            //下载完成后把下载路径传出去,虽然说mod里面已经预设了，但这里传这个路径的意思仅仅是到字典里面做个记录表示下载完成
+            if(_completeDownloadBlock)
+            {
+                _completeDownloadBlock(self.cachesPath);
+            }
+        }
+    }
+}
 
+/*
 //downloadTask的代理方法
 -(void)URLSession:(NSURLSession *)session downloadTask:(nonnull NSURLSessionDownloadTask *)downloadTask didResumeAtOffset:(int64_t)fileOffset expectedTotalBytes:(int64_t)expectedTotalBytes
 {
@@ -441,5 +497,5 @@
     }
 }
 //------------------------------------NSURLSession的代理------------------------------------------
-
+*/
 @end

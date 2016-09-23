@@ -16,6 +16,8 @@
     mod.provider=dict[@"provider"];
     mod.fileName = dict[@"fileName"];
     mod.downloadPath=dict[@"filePath"];
+    //提前设置好保存的路径
+    mod.savePath = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:mod.fileName];
     return mod;
 }
 

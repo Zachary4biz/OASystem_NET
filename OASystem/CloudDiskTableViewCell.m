@@ -43,6 +43,7 @@
     
     self.progressView.hidden=YES;
     self.checkView.hidden = YES;
+    _download.cachesPath = self.mod.savePath;
     
 }
 
@@ -78,12 +79,12 @@
         
         //下载前先传一下resumeData
         //把resumeData返回给download对象，在它的类里面会检查这个resumeData
-        NSString *fileName = [NSString stringWithFormat:@"resume_%@",self.mod.fileName];
-        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:fileName];
-        NSData *resumeData = [NSData dataWithContentsOfFile:path];
-        _download.getLocalResumeDataBlock = ^(){
-            return resumeData;
-        };
+//        NSString *fileName = [NSString stringWithFormat:@"resume_%@",self.mod.fileName];
+//        NSString *path = [[NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:fileName];
+//        NSData *resumeData = [NSData dataWithContentsOfFile:path];
+//        _download.getLocalResumeDataBlock = ^(){
+//            return resumeData;
+//        };
         //开始下载
         [_download downloadFileWithrequest:request_get];
         
@@ -91,9 +92,12 @@
         //这个进度条是唯一一个在cell里面做的UI变化，还不知道好不好使______其实UI变化可以在cell里面做，UI变化后的标识如各种judge必须在VC的self.modArr里面更改才有效果，不然复用的时候cell.mod= self.modArr[indexPath.row];会把cell.mod里面保存的更改覆盖掉的。
         typeof(self) __weak weakSelf = self;
         _download.progressblock=^(float progress){
-            if (weakSelf.downloadProgressBlock) {
-                weakSelf.downloadProgressBlock(progress);
-            }
+            //回到主线程，更新UI——progressView
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (weakSelf.downloadProgressBlock) {
+                    weakSelf.downloadProgressBlock(progress);
+                }
+            });
     //        self.mod.progress = progress; //这里有问题，这个self.mod会被复用的
     //        self.progressView.progress = self.mod.progress;
         };
@@ -116,12 +120,10 @@
     }
     else{
         //暂停情况下点击
-        [_download suspendDownloadWithCompleteBlock:^(id object) {
-            //传过来的object就是resumeData
-            if (_clickSuspendBtnBlock){
-                _clickSuspendBtnBlock(object);
-            }
-        }];
+        [_download suspendDownload];
+        if (_clickSuspendBtnBlock) {
+            _clickSuspendBtnBlock();
+        }
 
     }
 }
