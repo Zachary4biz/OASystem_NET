@@ -65,9 +65,6 @@
     [[UINavigationBar appearance] setTintColor:[UIColor blueColor]];
     //5.设置title的字体颜色
     
-    
-    
-    
     return YES;
 }
 

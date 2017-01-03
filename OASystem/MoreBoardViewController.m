@@ -87,6 +87,7 @@
         //如果是在编辑模式时点了按钮（进入编辑模式时因为从tap手势进来这个VC，进来时已经设置了rightBtnItem额title是“取消”，现在就直接执行退出编辑模式，并隐藏按钮就行了
         [self.boardTableView setEditing:NO animated:YES];
         self.doneBtn.hidden = YES;
+        
     }
 }
 //取消选择，让模型数组的所有模型都执行这个方法，check为0

@@ -214,6 +214,6 @@
 
 
 - (IBAction)addBtn:(id)sender {
-    [self.navigationController performSegueWithIdentifier:@"cloudDisk2add" sender:nil];
+    [self performSegueWithIdentifier:@"cloudDisk2add" sender:nil];
 }
 @end

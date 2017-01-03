@@ -111,14 +111,26 @@
     else{
         self.durationTextField.text = [NSString stringWithFormat:@"%ld",row];
     }
+    [self textChange];//viewdidload里面那个，在pickerView是不会响应的
     
 }
+
+
 #pragma UITExtFieldDelegate
 -(BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
     //textField不可编辑，只能从pickerView选数据进去
-    return NO;
+    if ([textField isEqual:_durationTextField]) {
+        return NO;
+    }
+    else if([textField isEqual:_levelTextField]){
+        return NO;
+    }
+    else{
+        return YES;
+    }
 }
+
 
 
 /*
@@ -132,6 +144,43 @@
 */
 
 - (IBAction)doneBtn:(id)sender {
+    someAssist *hud = [[someAssist alloc]init];
+    [hud showWait:self];
+    
+    NSURL *url =[NSURL URLWithString:[someAssist serverWith:@"addboard"]];
+    NSMutableURLRequest *request_post = [NSMutableURLRequest requestWithURL:url];
+    request_post.HTTPMethod = @"POST";
+    request_post.HTTPBody = [[NSString stringWithFormat:@"content=%@&provider=%@&ddl=%@&level=%@",_boardTextView.text,_providerTextField.text,_durationTextField.text,_levelTextField.text] dataUsingEncoding:NSUTF8StringEncoding];
+    
+    
+    [[[NSURLSession sharedSession] dataTaskWithRequest:request_post completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        [hud dismissWait:self];
+        if (error) {
+            [someAssist alertWith:@"网络错误" viewController:self];
+        }
+        else{
+            NSString *result = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+            if ([result isEqualToString:@"not done"]) {
+                [someAssist alertWith:@"上传失败" viewController:self];
+            }
+            else if([result isEqualToString:@"too long"]){
+                [someAssist alertWith:@"字数不能超过300" viewController:self];
+            }
+            else if([result isEqualToString:@"done"])
+            {
+                UIAlertController *alertVC = [UIAlertController alertControllerWithTitle:@"已上传" message:nil preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *ok = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                    [self.navigationController popViewControllerAnimated:YES];
+                }];
+                [alertVC addAction:ok];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self presentViewController:alertVC  animated:YES completion:nil];
+                });
+                
+                
+            }
+        }
+    }] resume];
     
 }
 @end

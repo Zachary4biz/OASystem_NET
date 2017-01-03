@@ -5,15 +5,10 @@
 //  Created by 周桐 on 16/9/1.
 //  Copyright © 2016年 周桐. All rights reserved.
 //
-
-
 #import "someAssist.h"
 #import "ContactsMod.h"
 #import "boardMod.h"
 #import "CloudDiskMod.h"
-
-
-
 
 @interface someAssist() <NSURLSessionDataDelegate> //dataDelegate同时自身也遵守了NSURLDelegate
 #pragma UI
@@ -30,7 +25,6 @@
 @property(nonatomic,strong)NSData *resumeData;//跟downloadTask配套使用，用来在cancel后，当恢复标识用
 @property(nonatomic,strong)NSOutputStream *stream;//写文件的流对象
 @property(nonatomic,assign)long contentLength; //需要下载的文件总长度
-
 
 @end
 
@@ -50,9 +44,9 @@
 +(NSString *)serverWith:(NSString *)str{
     
 //        NSString *root = @"http://192.168.1.154:8080";
-    //    NSString *root = @"http://127.0.0.1:8080";
+        NSString *root = @"http://127.0.0.1:8080";
 //        NSString *root = @"http://192.168.10.113:8080";
-    NSString *root = @"http://192.168.191.1:8080";
+//    NSString *root = @"http://192.168.191.1:8080";
     NSString *urlStr = [NSString stringWithFormat:@"%@/%@",root,str];
     return urlStr;
     
@@ -67,7 +61,10 @@
 //    }];
     
     UIAlertView *alertView = [[UIAlertView alloc]initWithTitle:str message:nil delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
-    [alertView show];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [alertView show];
+    });
+    
     
 }
 
@@ -75,6 +72,7 @@
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:str message:nil preferredStyle:UIAlertControllerStyleAlert];
     UIAlertAction *action  = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         NSLog(@"点击了确定?");
+        [alert dismissViewControllerAnimated:YES completion:nil];
         [vc.navigationController popToRootViewControllerAnimated:YES];
     }];
     [alert addAction:action];
@@ -107,6 +105,7 @@
     return [formatter stringFromDate:[NSDate date]];
 }
 
+extern i = 1;
 -(void)showWait:(UIViewController *)VC{
     //    self.alertController = [UIAlertController alertControllerWithTitle:@"请稍后" message:nil preferredStyle:UIAlertControllerStyleAlert];
     self.alertView = [[UIAlertView alloc]initWithTitle:@"请稍后" message:nil delegate:nil cancelButtonTitle:nil otherButtonTitles:nil, nil];

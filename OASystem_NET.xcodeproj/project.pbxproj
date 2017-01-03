@@ -45,6 +45,7 @@
 		B630ACDF1D701A4C0065A433 /* MessageView.m in Sources */ = {isa = PBXBuildFile; fileRef = B630ACDE1D701A4C0065A433 /* MessageView.m */; };
 		B630ACE11D701A640065A433 /* MessageView.xib in Resources */ = {isa = PBXBuildFile; fileRef = B630ACE01D701A640065A433 /* MessageView.xib */; };
 		B630ADFE1D780E730065A433 /* someAssist.m in Sources */ = {isa = PBXBuildFile; fileRef = B630ADFD1D780E730065A433 /* someAssist.m */; };
+		B644657E1DB9C4D400C73F61 /* FirstTimeOpenRecord.plist in Resources */ = {isa = PBXBuildFile; fileRef = B644657D1DB9C4D400C73F61 /* FirstTimeOpenRecord.plist */; };
 		B64788261D6C5A64004AA17B /* BoardViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B64788251D6C5A64004AA17B /* BoardViewController.m */; };
 		B64788291D6C5AD6004AA17B /* TimeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B64788281D6C5AD6004AA17B /* TimeViewController.m */; };
 		B647882C1D6C5B77004AA17B /* MessageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B647882B1D6C5B77004AA17B /* MessageViewController.m */; };
@@ -152,6 +153,7 @@
 		B630ACE01D701A640065A433 /* MessageView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MessageView.xib; sourceTree = "<group>"; };
 		B630ADFC1D780E730065A433 /* someAssist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = someAssist.h; sourceTree = "<group>"; };
 		B630ADFD1D780E730065A433 /* someAssist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = someAssist.m; sourceTree = "<group>"; };
+		B644657D1DB9C4D400C73F61 /* FirstTimeOpenRecord.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = FirstTimeOpenRecord.plist; sourceTree = "<group>"; };
 		B64788241D6C5A64004AA17B /* BoardViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BoardViewController.h; sourceTree = "<group>"; };
 		B64788251D6C5A64004AA17B /* BoardViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BoardViewController.m; sourceTree = "<group>"; };
 		B64788271D6C5AD6004AA17B /* TimeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeViewController.h; sourceTree = "<group>"; };
@@ -253,6 +255,7 @@
 				B6137C1B1D668B8C0048E038 /* AppDelegate.m */,
 				B6137C411D685EE00048E038 /* LoginViewController.h */,
 				B6137C421D685EE00048E038 /* LoginViewController.m */,
+				B644657D1DB9C4D400C73F61 /* FirstTimeOpenRecord.plist */,
 				B6137C391D66EB170048E038 /* EntryViewController.h */,
 				B6137C3A1D66EB170048E038 /* EntryViewController.m */,
 				B6137C661D6BFE0D0048E038 /* AccountSettingViewController.h */,
@@ -493,6 +496,7 @@
 				TargetAttributes = {
 					B6137C131D668B8C0048E038 = {
 						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = 4E33RF5MGJ;
 					};
 				};
 			};
@@ -529,6 +533,7 @@
 				B6D60B291D8078CC006ED7CA /* boardDetail.xib in Resources */,
 				B6137C221D668B8C0048E038 /* Main.storyboard in Resources */,
 				B6137C4F1D6A933C0048E038 /* Lina.jpg in Resources */,
+				B644657E1DB9C4D400C73F61 /* FirstTimeOpenRecord.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -708,12 +713,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/OASystem/PrefixHeader.pch";
 				INFOPLIST_FILE = OASystem/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Zac.OASystem;
 				PRODUCT_NAME = OASystem_NET;
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -722,12 +730,15 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SRCROOT)/OASystem/PrefixHeader.pch";
 				INFOPLIST_FILE = OASystem/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = Zac.OASystem;
 				PRODUCT_NAME = OASystem_NET;
+				PROVISIONING_PROFILE = "";
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;

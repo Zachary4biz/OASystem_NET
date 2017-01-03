@@ -18,6 +18,7 @@
 
 
 //@property (nonatomic, strong)NSMutableArray *dataArr;//放在.h声明了
+- (IBAction)searchBtn:(id)sender;
 
 - (IBAction)backBtn:(id)sender;
 #pragma UI
@@ -27,6 +28,9 @@
 @property (weak, nonatomic) IBOutlet UITableView *contactsTableView;//联系人tableview
 @property(nonatomic,strong)UIImageView *imgView;//实现能旋转的导航栏按钮，思路是用initWithCustomView给导航栏按钮加载一个UIButton按钮，这个按钮里面有subView:imgView，且这个UIButton的大小是40 40，所以点击的时候旋转这个imgView就可以了，
 @property(nonatomic,strong)UIRefreshControl *control;//下拉刷新用的控件
+@property (weak, nonatomic) IBOutlet UIButton *editBtn;//到时候还是要点击编辑-->取消，点击取消-->编辑
+@property (weak, nonatomic) IBOutlet UIView *view4editBtn;//点击编辑按钮出现的view
+- (IBAction)deleteBtn4editBtn:(id)sender;
 
 #pragma Functional
 @property (nonatomic, strong)UIView *alphaView;//用来实现导航栏滚动透明
@@ -39,6 +43,7 @@
 //所以，如果下载图片要10S，10S内滚动导致cell消失出现10次，那就会会重复开10个线程
 //@property(nonatomic,strong)moreBtnViewView *moreBtnView; //用来全局记录这个生成的Xib View
 @property(nonatomic,assign)int judge4rightBtnItem; //用来记录按钮的点击状态，点击一次就取反一次
+@property(nonatomic,assign)int judge4selectedRow; //判断是在编辑模式下选中一行还是在普通模式下选中一行（要不要跳转页面）
 @end
 
 @implementation ContactsViewController
@@ -87,6 +92,8 @@
 //    [_control beginRefreshing];
 //    [self refreshContactsWithControl:_control];
     
+    //点击编辑按钮出现的view，一开始是隐藏
+    self.view4editBtn.hidden=YES;
 }
 
 
@@ -272,6 +279,9 @@
     return cell;
 }
 
+
+
+
 #pragma mark ScrollViewDelegate
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
@@ -294,7 +304,11 @@
     }
     
 }
+
+#pragma mark TableViewDelegate
 //实现左划按钮——————————————————————————
+//单个删除按钮
+/*
 -(void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
 {
     someAssist *hud = [[someAssist alloc]init];
@@ -328,18 +342,38 @@
     }];
 
 }
-
+ */
+//多个按钮
+- (nullable NSArray<UITableViewRowAction *> *)tableView:(UITableView *)tableView editActionsForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    UITableViewRowAction *actionEdit = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleNormal title:@"编辑" handler:^(UITableViewRowAction * _Nonnull action, NSIndexPath * _Nonnull indexPath) {
+        NSLog(@"编辑？");
+    }];
+    
+    UITableViewRowAction *actionDelete = [UITableViewRowAction rowActionWithStyle:UITableViewRowActionStyleDestructive title:@"删除" handler:^(UITableViewRowAction * _Nonnull action, NSIndexPath * _Nonnull indexPath) {
+        NSLog(@"删除");
+    }];
+    NSArray *array = [NSArray arrayWithObjects:actionEdit,actionDelete, nil];
+    return array;
+}
 //实现左划按钮——————————————————————————
 
-#pragma mark TableViewDelegate
 -(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    //选中的时候进行跳转
-    self.recorder4indexPathRow = indexPath.row;
-    NSLog(@"选中了第%ld个cell",(long)indexPath.row);
-
-    [self performSegueWithIdentifier:@"contacts2detail" sender:nil];
+    if (_judge4selectedRow) {
+        //不添加操作了，就默认的点两次取消选择
+    }
+    else{
+        //非编辑模式下选中的时候进行跳转
+        NSLog(@"选中了第%ld个cell",(long)indexPath.row);
+        self.recorder4indexPathRow = indexPath.row;
+        [self performSegueWithIdentifier:@"contacts2detail" sender:nil];
+    }
+    
 }
+
+
+#pragma mark Segue
 -(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {
     if ([segue.identifier isEqualToString:@"contacts2detail"]) {
@@ -364,6 +398,8 @@
     // Pass the selected object to the new view controller.
 }
 */
+
+
 
 - (IBAction)backBtn:(id)sender {
     [self.navigationController popViewControllerAnimated:YES];
@@ -393,10 +429,113 @@
 
 }
 - (IBAction)editBtn:(id)sender {
-    NSLog(@"点击了编辑");
+    if ([_editBtn.titleLabel.text isEqualToString:@"编辑"]) {
+        NSLog(@"点击了编辑");
+        //1.
+        _editBtn.titleLabel.text = @"取消";
+        [_editBtn setTitle:@"取消" forState:UIControlStateNormal];
+        //2.
+        self.contactsTableView.allowsMultipleSelectionDuringEditing=YES;
+        [self.contactsTableView setEditing:YES animated:YES];
+        
+        //3.
+        _view4editBtn.hidden=NO;
+        [UIView animateWithDuration:0.4 animations:^{
+            _view4editBtn.alpha = 1;
+        }];
+        
+        //4.编辑（多选）时要取消自身的didSelecte时的跳转，给一个judge来判断
+        _judge4selectedRow = 1;
+    }
+    else{
+        NSLog(@"点击了取消");
+        //1.
+        _editBtn.titleLabel.text = @"编辑";
+        [_editBtn setTitle:@"编辑" forState:UIControlStateNormal];
+        //2.
+        [self.contactsTableView setEditing:NO animated:YES];
+        //3.
+        [UIView animateWithDuration:0.4 animations:^{
+            _view4editBtn.alpha = 0;
+        } completion:^(BOOL finished) {
+            _view4editBtn.hidden = YES;
+        }];
+        
+        //4.
+        _judge4selectedRow = 0;
+    }
+    
+    
 }
+
+
+- (IBAction)deleteBtn4editBtn:(id)sender {
+    UIAlertController *alertVC = [UIAlertController alertControllerWithTitle:@"确定删除选中联系人？" message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+    UIAlertAction *ok = [UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        NSLog(@"删除了");
+        //[self batchDelete];//for循环可能有点问题
+        
+    }];
+    UIAlertAction *cancel = [UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:nil];
+    [alertVC addAction:ok];
+    [alertVC addAction:cancel];
+    [self presentViewController:alertVC animated:YES completion:nil];
+    
+}
+
+//批量删除选中的
+-(void)batchDelete
+{
+    //打算for循环直接传值给左划按钮的代理函数来删除，算了， 到时候还要加左划多个按钮，不方便
+    //利用[tableView indexPathsForSelectedRows来记录选中的所有row
+    NSArray *selectedRowsArr =[NSArray arrayWithArray:[self.contactsTableView indexPathsForSelectedRows]];
+    //hud
+    someAssist *hud = [[someAssist alloc]init];
+    [hud showWait:self];
+#warning 有一个问题就是for循环中多次发起异步网络请求，如果网络出错会怎么样？还有在循环到第五个，第一个的请求结果回来了，要刷新tableView，但是这时候有HUD，HUD存在时，另一个VC能被操作么？？
+    for (int i=0; i<selectedRowsArr.count; i++) {
+        //获取数组中的选中的indexPath
+        NSIndexPath *indexPath = selectedRowsArr[i];
+        //建立request
+        NSURL *url = [NSURL URLWithString:[someAssist serverWith:@"deletecontact"]];
+        NSMutableURLRequest *request_post = [NSMutableURLRequest requestWithURL:url];
+        request_post.HTTPMethod = @"POST";
+        request_post.timeoutInterval = 5;
+        ContactsMod *mod = _dataArr[indexPath.row];
+        NSString *info = [NSString stringWithFormat:@"Id=%@",mod.Id];
+        request_post.HTTPBody=[info dataUsingEncoding:NSUTF8StringEncoding];
+        //发起request
+        [NSURLConnection sendAsynchronousRequest:request_post queue:[[NSOperationQueue alloc]init] completionHandler:^(NSURLResponse * _Nullable response, NSData * _Nullable data, NSError * _Nullable connectionError) {
+            [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+#warning 这个HUD放在那里dismiss才好？如何才能判断整个循环都跑完了？
+                [hud dismissWait:self];
+                NSString *judge = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
+                if (connectionError) {
+                    NSLog(@"deletebtn请求失败--%@",connectionError);
+                    [someAssist serverWith:@"连接服务器失败"];
+                    
+                }
+                else if([judge isEqualToString:@"done"]){
+                    [self.dataArr removeObjectAtIndex:indexPath.row];
+                    [_contactsTableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
+                    [[NSNotificationCenter defaultCenter] postNotificationName:@"deleteContact" object:nil];
+                }
+                else if ([judge isEqualToString:@"not done"]){
+                    [someAssist alertWith:@"删除失败" viewController:self];
+                }
+            }];
+        }];
+        
+        
+    }
+}
+
 
 - (IBAction)addBtn:(id)sender {
     [self performSegueWithIdentifier:@"contacts2add" sender:nil];
 }
+- (IBAction)searchBtn:(id)sender {
+    
+}
+
 @end

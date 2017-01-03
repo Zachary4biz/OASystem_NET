@@ -9,7 +9,9 @@
 #import "LoginViewController.h"
 #import "someAssist.h"
 #import "EntryViewController.h"
-
+#define RecorderPath [[NSBundle mainBundle]pathForResource:@"FirstTimeOpenRecord" ofType:@"plist"]
+#define RecorderInSandboxPath [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:@"FirstTimeOpenRecord.plist"]
+#define RecorderDict [NSDictionary dictionaryWithContentsOfFile:RecorderInSandboxPath]
 @interface LoginViewController ()<UITextFieldDelegate>
 @property (weak, nonatomic) IBOutlet UIImageView *iconView;
 @property (weak, nonatomic) IBOutlet UITextField *account;
@@ -36,10 +38,27 @@
 @implementation LoginViewController
 
 - (void)viewDidLoad {
-
     
     [super viewDidLoad];
     self.automaticallyAdjustsScrollViewInsets = NO;
+    
+    //工程新建的plist只能读不能写，要copy到沙盒中才行
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+//    NSString *filePatch = [[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject] stringByAppendingPathComponent:@"FirstTimeOpenRecord.plist"];
+    BOOL Exists = [fileManager fileExistsAtPath:RecorderInSandboxPath];
+    if (!Exists) {
+        NSError *error;
+        [fileManager copyItemAtPath:RecorderPath toPath:RecorderInSandboxPath error:&error];
+    }
+    
+    NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:RecorderInSandboxPath];
+    NSLog(@"didload里的%@",dict);
+    if (dict[@"isFirstTimeOpenLoginView"])
+    {
+        //第一次登陆不设置自动登陆和记住密码
+        self.rememberPwdSwitch.on = NO;
+        self.autoLoginSwitch.on = NO;
+    }
     
     // Do any additional setup after loading the view.
 //    self.account.delegate = self;
@@ -75,12 +94,19 @@
 -(void)dealloc{
     [[NSNotificationCenter defaultCenter]removeObserver:self];
 }
+-(void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:RecorderDict];
+    [dict setObject:@NO forKey:@"isFirstTimeOpenLoginView"];
+    NSLog(@"dict is %@--------------",dict);
+    [dict writeToFile:RecorderInSandboxPath atomically:YES];
+}
 //当pwd和account都有内容时才能点击login按钮
 -(void)textChange
 {
-
     self.UIloginBtn.enabled = self.account.text.length && self.pwd.text.length;
-    NSLog(@"%@----%@",self.account.text,self.pwd.text);
+//    NSLog(@"%@----%@",self.account.text,self.pwd.text);
 }
 
 //应对键盘弹出时，需要将窗口上移
@@ -227,8 +253,8 @@ else if(self.rememberPwdSwitch.on==NO){
     if (userArr_temp) {
         userArr = [userArr_temp mutableCopy];
     }
-    NSString *nu=NULL;
-    [userArr addObject:@{@"account":self.account.text,@"pwd":nu}];
+    
+    [userArr addObject:@{@"account":self.account.text,@"pwd":@""}];
     [userDefaults setObject:userArr forKey:@"UserKey"];
 }
 }

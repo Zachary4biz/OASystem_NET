@@ -19,7 +19,7 @@
 
 @property (weak, nonatomic) IBOutlet UIView *boardView; //用来装公告的view，每次willAppear都删除它的所有子view，并重新加载xib
 @property (nonatomic,strong)NSMutableArray *boardModArr;
-@property(nonatomic,assign)CGPoint curP; //用来获取全局上的触摸点位置
+@property(nonatomic,assign)CGPoint curP; //用来获取全局上的触摸点   位置
 @property(nonatomic,strong) NSMutableArray *recorder4Frame;//换了思路，数组保存frame就行了，数组的索引就是tag。 老想法：数组保存字典，字典是tag和frame，
 @property(nonatomic,strong)NSMutableArray *recorder4DefaultFrame; //加载的初始九宫格的frame，这个是为了避免第一次打开程序，recorder4Frame是空，用这个来记录默认的九宫格布局
 @property(nonatomic,assign)NSInteger judge;//判断是不是从tap跳转到moreBoard页面

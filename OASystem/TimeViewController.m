@@ -20,7 +20,7 @@
     NSLog(@"---");
     
     NSLog(@"---");
-
+    [someAssist alertAndExitWith:@"测试alertVC的消失" viewController:self];
     // Do any additional setup after loading the view.
 }
 
